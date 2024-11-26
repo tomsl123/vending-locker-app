@@ -78,15 +78,10 @@ flutter:
     - assets/images/3.png
     - assets/images/mesh-gradient.png
     - assets/images/similar1.png
-
-  assets:
-    - assets/pen.png
-    - assets/mesh-gradient.png
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
+    - assets/images/pen.png
+    - assets/images/mesh-gradient.png
+    - assets/images/categories/craft.png
+    - assets/images/categories/gear.png
+    - assets/images/categories/paper.png
+    - assets/images/categories/store.png
+    - assets/images/categories/writing.png

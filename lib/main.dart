@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'cart_page.dart';
+import 'package:vending_locker_app/screens/homepage.dart';
+import 'screens/cart_page.dart';
 
 void main() {
   runApp(const MainApp());
@@ -14,7 +15,7 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
       ),
-      home: const FirstRoute(),
+      home: const Homepage(),
     );
   }
 }
