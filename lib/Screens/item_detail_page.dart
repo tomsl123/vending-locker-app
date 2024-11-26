@@ -297,7 +297,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             _ShowProductInfo(),
 
                             SizedBox(height: 35),
-                            SimilarItemsWidget()
+                            SimilarItemsWidget(),
+
+                            SizedBox(height: 20),
                           ], // Children
                         ),
                       ),
