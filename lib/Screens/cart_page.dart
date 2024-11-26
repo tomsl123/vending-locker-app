@@ -16,34 +16,34 @@ class _CartPageState extends State<CartPage> {
     CartItem(
       name: 'Gel Ink Ballpoint Pen (Black)',
       price: 4.00,
-      image: 'assets/pen.png',
+      image: 'assets/images/pen.png',
       quantity: 1,
     ),
     CartItem(
       name: 'Notebook',
       price: 8.00,
-      image: 'assets/pen.png',
-      quantity: 1,
-      warning: 'This item is not available at SHED A 1',
-    ),
-    CartItem(
-      name: 'Notebook',
-      price: 8.00,
-      image: 'assets/pen.png',
+      image: 'assets/images/pen.png',
       quantity: 1,
       warning: 'This item is not available at SHED A 1',
     ),
     CartItem(
       name: 'Notebook',
       price: 8.00,
-      image: 'assets/pen.png',
+      image: 'assets/images/pen.png',
       quantity: 1,
       warning: 'This item is not available at SHED A 1',
     ),
     CartItem(
       name: 'Notebook',
       price: 8.00,
-      image: 'assets/pen.png',
+      image: 'assets/images/pen.png',
+      quantity: 1,
+      warning: 'This item is not available at SHED A 1',
+    ),
+    CartItem(
+      name: 'Notebook',
+      price: 8.00,
+      image: 'assets/images/pen.png',
       quantity: 1,
       warning: 'This item is not available at SHED A 1',
     ),
@@ -445,7 +445,7 @@ class _CartPageState extends State<CartPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
                       image: const DecorationImage(
-                        image: AssetImage('assets/mesh-gradient.png'),
+                        image: AssetImage('assets/images/mesh-gradient.png'),
                         fit: BoxFit.cover,
                       ),
                       boxShadow: const [
