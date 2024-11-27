@@ -293,13 +293,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ),
                             ),
 
-                            SizedBox(height: 16),
+                            SizedBox(height: 14),
                             _ShowProductInfo(),
 
                             SizedBox(height: 35),
                             SimilarItemsWidget(),
 
-                            SizedBox(height: 20),
+                            SizedBox(height: 24),
                           ], // Children
                         ),
                       ),
@@ -309,7 +309,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Positioned( // add to cart button fixed position
                   left: 0,
                   right: 0,
-                  bottom: 36,
+                  bottom: 46,
                   child: AddToCartButton(
                     onPressed: () {
                       // Add the product to the cart here
