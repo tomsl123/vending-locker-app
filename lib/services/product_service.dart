@@ -153,4 +153,13 @@ class ProductService {
     List<dynamic> data = jsonDecode(mockData);
     return data.map((json) => Product.fromJson(json)).toList();
   }
+
+  Future<Product> fetchProductById(int id) async {
+    // TODO: Simulate a delay to mimic network latency, REMOVE!!!
+    // await Future.delayed(Duration(seconds: 1));
+
+    //TODO: Do this properly!!!
+    List<dynamic> data = jsonDecode(mockData);
+    return data.map((json) => Product.fromJson(json)).toList()[id];
+  }
 }
