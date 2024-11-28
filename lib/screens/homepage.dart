@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'cart_page.dart';
+
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
 
@@ -20,11 +22,10 @@ class _HomepageState extends State<Homepage> {
         title: Text(
           'Hello $user!',
           style: const TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-            letterSpacing: 0.4
-          ),
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+              letterSpacing: 0.4),
         ),
         actions: [
           Padding(
@@ -37,7 +38,12 @@ class _HomepageState extends State<Homepage> {
                     color: Color(0xFF312F2F),
                     size: 25,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CartPage()),
+                    );
+                  },
                 ),
                 Stack(
                   children: [
@@ -94,7 +100,8 @@ class _HomepageState extends State<Homepage> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: const Color.fromRGBO(248, 248, 248, 1), // Background color of the search bar
+                color: const Color.fromRGBO(
+                    248, 248, 248, 1), // Background color of the search bar
                 borderRadius: BorderRadius.circular(23.0), // Rounded corners
               ),
               child: Row(
@@ -126,20 +133,19 @@ class _HomepageState extends State<Homepage> {
                 const Text(
                   'Category',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black // TODO: Gradient
-                  ),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black // TODO: Gradient
+                      ),
                 ),
                 GestureDetector(
                   onTap: () {},
                   child: const Text(
                     'See all',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromRGBO(49, 47, 47, 1)
-                    ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color.fromRGBO(49, 47, 47, 1)),
                   ),
                 ),
               ],
@@ -191,7 +197,6 @@ class _HomepageState extends State<Homepage> {
       ),
     );
   }
-
 }
 
 class CategoryItem extends StatelessWidget {
@@ -232,10 +237,9 @@ class CategoryItem extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color.fromRGBO(51, 51, 51, 1)
-            ),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color.fromRGBO(51, 51, 51, 1)),
             textAlign: TextAlign.center,
           ),
         ],
@@ -243,5 +247,3 @@ class CategoryItem extends StatelessWidget {
     );
   }
 }
-
-
