@@ -148,7 +148,7 @@ class ProductService {
 
   Future<List<Product>> fetchProducts() async {
     // TODO: Simulate a delay to mimic network latency, REMOVE!!!
-    await Future.delayed(Duration(seconds: 1));
+    // await Future.delayed(Duration(seconds: 1));
 
     List<dynamic> data = jsonDecode(mockData);
     return data.map((json) => Product.fromJson(json)).toList();
