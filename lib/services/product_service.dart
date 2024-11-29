@@ -162,4 +162,19 @@ class ProductService {
     List<dynamic> data = jsonDecode(mockData);
     return data.map((json) => Product.fromJson(json)).toList()[id];
   }
+
+  Future<List<Product>> fetchProductByIds(List<int> ids) async {
+    // TODO: Simulate a delay to mimic network latency, REMOVE!!!
+    // await Future.delayed(Duration(seconds: 1));
+
+    //TODO: Do this properly!!!
+    List<dynamic> data = jsonDecode(mockData);
+    List<Product> products = data.map((json) => Product.fromJson(json)).toList();
+    return products
+      .asMap()
+      .entries
+      .where((entry) => ids.contains(entry.key))
+      .map((entry) => entry.value)
+      .toList();
+  }
 }
