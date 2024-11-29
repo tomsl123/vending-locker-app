@@ -1,23 +1,14 @@
-// Similar items widget
 import 'package:flutter/material.dart';
-// import 'package:vending_locker_app/data/product.dart';
+import 'package:vending_locker_app/data/product.dart';
 // import 'package:vending_locker_app/services/product_service.dart';
 
 class ProductPreviewCard extends StatefulWidget {
-  final String imageUrl;
-  final String name;
-  final double price;
+  final Product product;
   final bool isFavorite;
-  final List<String>? category;
-  final String? location;
 
   const ProductPreviewCard({
       super.key,
-      required this.imageUrl,
-      required this.name,
-      required this.price,
-      this.category,
-      this.location,
+      required this.product,
       this.isFavorite = false,
   });
 
@@ -26,7 +17,7 @@ class ProductPreviewCard extends StatefulWidget {
 }
 
 class ProductPreviewCardState extends State<ProductPreviewCard> {
-  final cartItems = <ProductPreviewCard>[]; // List to store cart items
+  final cartItems = <Product>[]; // List to store cart items
   late bool _isFavorite; // Separate state variable
 
   @override
@@ -41,9 +32,9 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
     });
   }
 
-  void _addToCart(ProductPreviewCard item, BuildContext context) {
+  void _addToCart(Product product, BuildContext context) {
     setState(() {
-      cartItems.add(item); // Add the item to the cart
+      cartItems.add(product); // Add the item to the cart
     });
 
     // create overlay to show "Added to Cart" message at the top
@@ -87,7 +78,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
 
   @override
   Widget build(BuildContext context) {
-    // final double cardHeight = MediaQuery.of(context).size.height * 0.4;
+    final product = widget.product;
 
     return SizedBox(
       width: 150, // fixed width for each item
@@ -107,9 +98,12 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                   Padding(
                     padding: EdgeInsets.all(4.0),
                     child: Center(
-                      child: Image.asset(
-                        widget.imageUrl,
+                      child: Image.network(
+                        product.images.isNotEmpty ? product.images[0] : '',
                         fit: BoxFit.contain, // added to control image sizing
+                        errorBuilder : (context, error, stackTrace) {
+                          return Icon(Icons.broken_image, size: 48, color: Colors.grey);
+                        },
                       ),
                     ),
                   ),
@@ -149,7 +143,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                     child: InkWell(
                       onTap: () {
                         // When tapped, add to cart and show feedback
-                        _addToCart(widget, context);
+                        _addToCart(product, context);
                       },
                       child: Container(
                         width: 28, // Circle width
@@ -179,14 +173,14 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
             // Product name and price
             SizedBox(height: 4),
             Text(
-              widget.name,
+              product.name,
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
               maxLines: 3, // limit text to 3 lines
               overflow: TextOverflow.ellipsis, // show ... if text overflows
             ),
             SizedBox(height: 4),
             Text(
-              '€${widget.price.toStringAsFixed(2)}',
+              '€${product.price.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 12, color: Color(0xFF312F2F)),
             ),
           ],

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../data/product.dart';
+import '../services/product_service.dart';
 import '/components/product_preview_card.dart';
+// import 'package:vending_locker_app/services/product_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -478,19 +481,6 @@ class AddToCartButton extends StatelessWidget {
 }
 
 // Similar items widget
-class SimilarItem {
-  final String imageUrl;
-  final String name;
-  final double price;
-  bool isFavorite; // Add this property to track favorite state
-
-  SimilarItem({
-    required this.imageUrl,
-    required this.name,
-    required this.price,
-    this.isFavorite = false, // Default value is false
-  });
-}
 
 class SimilarItemsWidget extends StatefulWidget {
   const SimilarItemsWidget({super.key});
@@ -500,23 +490,14 @@ class SimilarItemsWidget extends StatefulWidget {
 }
 
 class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
-  final List<SimilarItem> similarItems = [
-    SimilarItem(
-      imageUrl: 'assets/images/similar1.png',
-      name: 'Gel Ink Ballpoint Pen (Black)',
-      price: 1.99,
-    ),
-    SimilarItem(
-      imageUrl: 'assets/images/similar1.png',
-      name: 'Calligraphy Pen Set (Black ink)',
-      price: 12.99,
-    ),
-    SimilarItem(
-      imageUrl: 'assets/images/similar1.png',
-      name: 'Highlighter Pen Set (Black)',
-      price: 12.99,
-    ),
-  ];
+  final ProductService _productService = ProductService();
+  late Future<List<Product>> _productsFuture; // Future for fetching products
+
+  @override
+  void initState() {
+    super.initState();
+    _productsFuture = _productService.fetchProducts(); // Fetch products
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -550,16 +531,52 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
           ),
           // Similar items list
           SizedBox(
-            height: 290, // fixed height for the list
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: similarItems.length,
-              itemBuilder: (context, index) {
-                final item = similarItems[index];
-                return ProductPreviewCard(
-                  imageUrl: item.imageUrl,
-                  name: item.name,
-                  price: item.price.toDouble(),
+            height: 290,
+            child: FutureBuilder<List<Product>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5271FF),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading products',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No similar items found',
+                      style: TextStyle(
+                        color: Color(0xFF312F2F),
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final product = snapshot.data![index];
+                    return ProductPreviewCard(
+                      product: product,
+                      isFavorite: false,
+                    );
+                  },
                 );
               },
             ),
