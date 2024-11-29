@@ -12,7 +12,7 @@ class ProductService {
     "price": 4.99,
     "description": "A standard A4 notebook for taking notes or journaling.",
     "images": [
-      "https://example.com/images/notebook_a4_1.jpg",
+      "https://cdn11.bigcommerce.com/s-guwvxpu4lu/images/stencil/1280x1280/products/3551/2400117/4550344953006_1260__76933.1732510641.jpg?c=1",
       "https://example.com/images/notebook_a4_2.jpg"
     ],
     "categories": ["Stationery", "Notebooks", "University Supplies"],
@@ -43,7 +43,7 @@ class ProductService {
     "price": 3.49,
     "description": "A pack of 10 blue ballpoint pens, ideal for everyday use.",
     "images": [
-      "https://example.com/images/ballpoint_pen_1.jpg",
+      "https://m.media-amazon.com/images/I/41pM+k9kJqL._AC_UF480,480_SR480,480_.jpg",
       "https://example.com/images/ballpoint_pen_2.jpg"
     ],
     "categories": ["Stationery", "Writing Instruments"],
@@ -65,7 +65,7 @@ class ProductService {
     "price": 29.99,
     "description": "An adjustable laptop stand for comfortable working positions.",
     "images": [
-      "https://example.com/images/laptop_stand_1.jpg",
+      "https://images-eu.ssl-images-amazon.com/images/I/71DXGxKBBPL._AC_UL348_SR348,348_.jpg",
       "https://example.com/images/laptop_stand_2.jpg"
     ],
     "categories": ["Office Supplies", "Ergonomics"],
@@ -96,7 +96,7 @@ class ProductService {
     "price": 6.99,
     "description": "A pack of 4 whiteboard markers in assorted colors.",
     "images": [
-      "https://example.com/images/whiteboard_markers_1.jpg",
+      "https://images-eu.ssl-images-amazon.com/images/I/81X-CtFfXsL._AC_UL348_SR348,348_.jpg",
       "https://example.com/images/whiteboard_markers_2.jpg"
     ],
     "categories": ["Stationery", "Teaching Supplies", "Markers"],
@@ -118,7 +118,7 @@ class ProductService {
     "price": 12.49,
     "description": "A multi-compartment desk organizer to keep your workspace tidy.",
     "images": [
-      "https://example.com/images/desk_organizer_1.jpg",
+      "https://images-eu.ssl-images-amazon.com/images/I/61NoN9E0XlL._AC_UL348_SR348,348_.jpg",
       "https://example.com/images/desk_organizer_2.jpg"
     ],
     "categories": ["Office Supplies", "Organization"],
