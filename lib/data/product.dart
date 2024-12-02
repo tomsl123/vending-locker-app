@@ -27,6 +27,26 @@ class Product {
     );
   }
 
+  String get allLocationsString {
+    // Filter locations with quantity > 0
+    final filteredLocations = productLocations.where((pl) => pl.quantity > 0);
+
+    // Group locations by building
+    final groupedByBuilding = <String, Set<String>>{};
+    for (var productLocation in filteredLocations) {
+      final location = productLocation.location;
+      groupedByBuilding.putIfAbsent(location.building, () => {}).add(location.section);
+    }
+
+    // Create the formatted string
+    final formattedString = groupedByBuilding.entries.map((entry) {
+      final sections = entry.value.join(", ");
+      return "${entry.key}: $sections";
+    }).join("; ");
+
+    return formattedString;
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
