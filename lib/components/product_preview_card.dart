@@ -5,11 +5,15 @@ import 'package:vending_locker_app/data/product.dart';
 class ProductPreviewCard extends StatefulWidget {
   final Product product;
   final bool isFavorite;
+  final bool showCategory;
+  final bool showLocation;
 
   const ProductPreviewCard({
-      super.key,
-      required this.product,
-      this.isFavorite = false,
+    super.key,
+    required this.product,
+    this.isFavorite = false,
+    this.showCategory = false,
+    this.showLocation = false
   });
 
   @override
@@ -175,7 +179,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
             Text(
               product.name,
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-              maxLines: 3, // limit text to 3 lines
+              maxLines: 2, // limit text to 2 lines
               overflow: TextOverflow.ellipsis, // show ... if text overflows
             ),
             SizedBox(height: 4),
@@ -183,6 +187,42 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
               '€${product.price.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 12, color: Color(0xFF312F2F)),
             ),
+            if(widget.showLocation)
+              SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.place,
+                    size: 14,
+                    color: Color.fromRGBO(49, 47, 47, 1),
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    product.allLocationsString,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Color.fromRGBO(49, 47, 47, 1),
+                    ),
+                  ),
+                ],
+              ),
+            if(widget.showCategory)
+              SizedBox(height: 6),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(231, 236, 255, 1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  product.category,
+                  style: TextStyle(
+                    color: Color.fromRGBO(82, 113, 255, 1),
+                    fontSize: 9
+                  ),
+                ),
+              )
           ],
         ),
       ),

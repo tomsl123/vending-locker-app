@@ -39,7 +39,7 @@ void main() {
         "price": 10.0,
         "description": "A test product",
         "images": ["image1.jpg", "image2.jpg"],
-        "categories": ["Category1", "Category2"],
+        "category": "Category1",
         "productLocations": [
           {
             "location": {

@@ -99,206 +99,223 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color.fromRGBO(
-                          248, 248, 248, 1), // Background color of the search bar
-                      borderRadius: BorderRadius.circular(23.0), // Rounded corners
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {},
-                        ),
-                        const Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: 'Search items...',
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.tune_outlined),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(
+                        248, 248, 248, 1), // Background color of the search bar
+                    borderRadius: BorderRadius.circular(23.0), // Rounded corners
                   ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  child: Row(
                     children: [
-                      ShaderMask(
-                        // Adds gradient to text
-                        shaderCallback: (Rect bounds) {
-                          return LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              Color.fromRGBO(49, 47, 47, 1),
-                              Color.fromRGBO(82, 113, 255, 1),
-                            ],
-                          ).createShader(bounds);
-                        },
-                        child: Text(
-                          'Category',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {},
+                      ),
+                      const Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Search items...',
+                            border: InputBorder.none,
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          'See all',
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Color.fromRGBO(49, 47, 47, 1)),
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.tune_outlined),
+                        onPressed: () {},
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-            const SizedBox(height: 15),
-            SizedBox(
-              height: 128,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: const [
-                  SizedBox(width: 20,),
-                  // Element 1
-                  CategoryItem(
-                    image: 'assets/images/categories/writing.png',
-                    title: 'Writing Supplies',
-                  ),
-                  SizedBox(width: 16), // Spacing between items
-
-                  // Element 2
-                  CategoryItem(
-                    image: 'assets/images/categories/paper.png',
-                    title: 'Paper Products',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 3
-                  CategoryItem(
-                    image: 'assets/images/categories/craft.png',
-                    title: 'Art and Craft',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 4
-                  CategoryItem(
-                    image: 'assets/images/categories/gear.png',
-                    title: 'Tech Gear',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 5
-                  CategoryItem(
-                    image: 'assets/images/categories/store.png',
-                    title: 'Store & Sort',
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 37,),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: ShaderMask(
-                  // Adds gradient to text
-                  shaderCallback: (Rect bounds) {
-                    return LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Color.fromRGBO(49, 47, 47, 1),
-                        Color.fromRGBO(82, 113, 255, 1),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 22),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ShaderMask(
+                              // Adds gradient to text
+                              shaderCallback: (Rect bounds) {
+                                return LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color.fromRGBO(49, 47, 47, 1),
+                                    Color.fromRGBO(82, 113, 255, 1),
+                                  ],
+                                ).createShader(bounds);
+                              },
+                              child: Text(
+                                'Category',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {},
+                              child: const Text(
+                                'See all',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color.fromRGBO(49, 47, 47, 1)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
-                    ).createShader(bounds);
-                  },
-                  child: Text(
-                    'Recommended for You',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
                     ),
                   ),
-                )
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    height: 128,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: const [
+                        SizedBox(width: 20,),
+                        // Element 1
+                        CategoryItem(
+                          image: 'assets/images/categories/writing.png',
+                          title: 'Writing Supplies',
+                        ),
+                        SizedBox(width: 16), // Spacing between items
+
+                        // Element 2
+                        CategoryItem(
+                          image: 'assets/images/categories/paper.png',
+                          title: 'Paper Products',
+                        ),
+                        SizedBox(width: 16),
+
+                        // Element 3
+                        CategoryItem(
+                          image: 'assets/images/categories/craft.png',
+                          title: 'Art and Craft',
+                        ),
+                        SizedBox(width: 16),
+
+                        // Element 4
+                        CategoryItem(
+                          image: 'assets/images/categories/gear.png',
+                          title: 'Tech Gear',
+                        ),
+                        SizedBox(width: 16),
+
+                        // Element 5
+                        CategoryItem(
+                          image: 'assets/images/categories/store.png',
+                          title: 'Store & Sort',
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 37,),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ShaderMask(
+                          // Adds gradient to text
+                          shaderCallback: (Rect bounds) {
+                            return LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color.fromRGBO(49, 47, 47, 1),
+                                Color.fromRGBO(82, 113, 255, 1),
+                              ],
+                            ).createShader(bounds);
+                          },
+                          child: Text(
+                            'Recommended for You',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                    ),
+                  ),
+                  FutureBuilder<List<Product>>(
+                    future: _productsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF5271FF),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Text(
+                            'Error loading products',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'We cannot recommend you anything at the moment, sorry!',
+                            style: TextStyle(
+                              color: Color(0xFF312F2F),
+                              fontSize: 14,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: GridView.builder(
+                            itemCount: snapshot.data!.length,
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 15.0,
+                                mainAxisSpacing: 15.0,
+                                childAspectRatio: 150 / 219
+                            ),
+                            itemBuilder: (context, index) {
+                              final product = snapshot.data![index]; // Access the product
+                              return ProductPreviewCard(product: product, showCategory: true, showLocation: true,);
+                            },
+                          )
+                      );
+                    },
+                  )
+                ],
               ),
             ),
-            FutureBuilder<List<Product>>(
-              future: _productsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF5271FF),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error loading products',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'We cannot recommend you anything at the moment, sorry!',
-                      style: TextStyle(
-                        color: Color(0xFF312F2F),
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-
-                return GridView.builder(
-                  itemCount: snapshot.data!.length,
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 15.0,
-                    mainAxisSpacing: 15.0,
-                    childAspectRatio: 150 / 154
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = snapshot.data![index]; // Access the product
-                    return ProductPreviewCard(product: product, showCategory: true);
-                  },
-                );
-              },
-            )
-          ],
-        ),
+          )
+        ],
       )
     );
   }
