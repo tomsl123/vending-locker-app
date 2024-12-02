@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:vending_locker_app/components/product_preview_card.dart';
 
+import '../data/product.dart';
+import '../services/product_service.dart';
 import 'cart_page.dart';
 
 class Homepage extends StatefulWidget {
@@ -11,6 +14,9 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   String user = 'David';
+
+  final ProductService _productService = ProductService();
+  late final Future<List<Product>> _productsFuture = _productService.fetchProducts();
 
   @override
   Widget build(BuildContext context) {
@@ -93,68 +99,88 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(25.0),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: const Color.fromRGBO(
-                    248, 248, 248, 1), // Background color of the search bar
-                borderRadius: BorderRadius.circular(23.0), // Rounded corners
-              ),
-              child: Row(
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {},
-                  ),
-                  const Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search items...',
-                        border: InputBorder.none,
-                      ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromRGBO(
+                          248, 248, 248, 1), // Background color of the search bar
+                      borderRadius: BorderRadius.circular(23.0), // Rounded corners
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () {},
+                        ),
+                        const Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Search items...',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.tune_outlined),
+                          onPressed: () {},
+                        ),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.tune_outlined),
-                    onPressed: () {},
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ShaderMask(
+                        // Adds gradient to text
+                        shaderCallback: (Rect bounds) {
+                          return LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Color.fromRGBO(49, 47, 47, 1),
+                              Color.fromRGBO(82, 113, 255, 1),
+                            ],
+                          ).createShader(bounds);
+                        },
+                        child: Text(
+                          'Category',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {},
+                        child: const Text(
+                          'See all',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Color.fromRGBO(49, 47, 47, 1)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'Category',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black // TODO: Gradient
-                      ),
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const Text(
-                    'See all',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color.fromRGBO(49, 47, 47, 1)),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 15),
             SizedBox(
-              height: 120,
+              height: 128,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: const [
+                  SizedBox(width: 20,),
                   // Element 1
                   CategoryItem(
                     image: 'assets/images/categories/writing.png',
@@ -190,10 +216,90 @@ class _HomepageState extends State<Homepage> {
                   ),
                 ],
               ),
+            ),
+            SizedBox(height: 37,),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ShaderMask(
+                  // Adds gradient to text
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Color.fromRGBO(49, 47, 47, 1),
+                        Color.fromRGBO(82, 113, 255, 1),
+                      ],
+                    ).createShader(bounds);
+                  },
+                  child: Text(
+                    'Recommended for You',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ),
+            ),
+            FutureBuilder<List<Product>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5271FF),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading products',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'We cannot recommend you anything at the moment, sorry!',
+                      style: TextStyle(
+                        color: Color(0xFF312F2F),
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  itemCount: snapshot.data!.length,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 15.0,
+                    mainAxisSpacing: 15.0,
+                    childAspectRatio: 150 / 154
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = snapshot.data![index]; // Access the product
+                    return ProductPreviewCard(product: product, showCategory: true);
+                  },
+                );
+              },
             )
           ],
         ),
-      ),
+      )
     );
   }
 }
