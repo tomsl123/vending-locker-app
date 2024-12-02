@@ -6,7 +6,7 @@ class Product {
   final double price;
   final String description;
   final List<String> images;
-  final List<String> categories;
+  final String category;
   final List<ProductLocation> productLocations;
 
   Product({
@@ -15,7 +15,7 @@ class Product {
     required this.price,
     required this.description,
     required this.images,
-    required this.categories,
+    required this.category,
     required this.productLocations,
   });
 
@@ -54,7 +54,7 @@ class Product {
       price: json['price'].toDouble(),
       description: json['description'],
       images: List<String>.from(json['images']),
-      categories: List<String>.from(json['categories']),
+      category: json['category'],
       productLocations: (json['productLocations'] as List)
           .map((pl) => ProductLocation.fromJson(pl))
           .toList(),
