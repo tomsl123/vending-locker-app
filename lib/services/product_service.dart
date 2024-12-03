@@ -12,8 +12,11 @@ class ProductService {
     "price": 4.99,
     "description": "A standard A4 notebook for taking notes or journaling.",
     "images": [
-      "https://cdn11.bigcommerce.com/s-guwvxpu4lu/images/stencil/1280x1280/products/3551/2400117/4550344953006_1260__76933.1732510641.jpg?c=1",
-      "https://example.com/images/notebook_a4_2.jpg"
+      "https://m.media-amazon.com/images/I/91DHOv07HDL._AC_SL1500_.jpg",
+      "https://m.media-amazon.com/images/I/81W5BB6QyPL._AC_SL1500_.jpg",
+      "https://m.media-amazon.com/images/I/61yVrHFe7-L._AC_SL1500_.jpg",
+      "https://m.media-amazon.com/images/I/81+vzR-oWNL._AC_SL1500_.jpg",
+      "https://m.media-amazon.com/images/I/8187egxJ5cL._AC_SL1500_.jpg"
     ],
     "category": "Paper Products",
     "productLocations": [
@@ -24,7 +27,7 @@ class ProductService {
           "section": "A",
           "floor": 1
         },
-        "quantity": 100
+        "quantity": 5
       },
       {
         "location": {
@@ -33,7 +36,7 @@ class ProductService {
           "section": "C",
           "floor": 2
         },
-        "quantity": 50
+        "quantity": 5
       }
     ]
   },

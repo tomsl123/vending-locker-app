@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../data/product.dart';
 import '../services/product_service.dart';
 import '/components/product_preview_card.dart';
-// import 'package:vending_locker_app/services/product_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,7 +23,10 @@ class MyApp extends StatelessWidget {
 }
 
 class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage({super.key});
+  final int productId;
+
+  const ProductDetailPage(
+      {super.key, this.productId = 0}); // Default to first product for now
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -33,289 +35,372 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   int currentImageIndex = 0;
   int quantity = 1;
+  bool showMaxQuantityWarning = false;
   bool isFavorite = false;
+  final ProductService _productService = ProductService();
+  late Future<Product> _productFuture; // for the main item of the page
 
-  final List<String> productImages = [
-    'assets/images/1.png',
-    'assets/images/2.png',
-    'assets/images/3.png',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _productFuture = _productService.fetchProductById(widget.productId);
+  }
 
-  final String productName = "Gel Ink Ballpoint Pen (Black)";
-  final double productPrice = 1.99;
+  void updateQuantity(bool increase, int totalQuantity) {
+    setState(() {
+      if (increase) {
+        if (quantity < totalQuantity) {
+          quantity++;
+          showMaxQuantityWarning = false;
+        } else {
+          showMaxQuantityWarning = true;
+        }
+      } else {
+        if (quantity > 1) {
+          quantity--;
+          showMaxQuantityWarning = false;
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-          bottom: false,
-          child: Stack(children: [
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image carousel with curved background
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFF5F5F5),
-                          Color(0xFFF1F3FD),
-                          Color(0xFFF5F5F5),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        SizedBox(
-                          height: 400,
-                          child: PageView.builder(
-                            onPageChanged: (index) {
-                              setState(() {
-                                currentImageIndex = index;
-                              });
-                            },
-                            itemCount: productImages.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.all(0),
-                                child: Image.asset(
-                                  productImages[index],
-                                  fit: BoxFit.contain,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Positioned(
-                          top: 20,
-                          left: 20,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                isFavorite = !isFavorite;
-                              });
-                            },
-                            child: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    isFavorite
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: Color(0xFFF32357),
-                                    size: 32,
-                                  ),
-                                )),
-                          ),
-                        ),
-                        Positioned(
-                          top: 16,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 9,
-                                margin: EdgeInsets.symmetric(horizontal: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: Colors.white,
-                                ),
-                              ),
-                              // Add more containers for additional page indicators
-                            ],
-                          ),
-                        ),
-
-                        // Dots indicator
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              productImages.length,
-                                  (index) => Container(
-                                margin: EdgeInsets.symmetric(horizontal: 4),
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: currentImageIndex == index
-                                      ? Color(0xFF312F2F)
-                                      : Color(0xFF312F2F).withOpacity(0.28),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ], // Children
-                    ),
+        bottom: false,
+        child: FutureBuilder<Product>(
+          future: _productFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF5271FF),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error loading product',
+                  style: TextStyle(
+                    color: Color(0xFFF32357),
+                    fontSize: 14,
                   ),
-
-                  // Product details
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return Center(
+                child: Text(
+                  'Product not found',
+                  style: TextStyle(
+                    color: Color(0xFFF32357),
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }
+            final product = snapshot.data!;
+            return Stack(
+              children: [
+                SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '$productName',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(35),
-                              ),
-                              child: Row(
-                                children: [
-                                  _buildQuantityButton(
-                                    icon: Icons.remove,
-                                    onPressed: () {
-                                      if (quantity > 1) {
-                                        setState(() {
-                                          quantity--;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    '$quantity',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  _buildQuantityButton(
-                                    icon: Icons.add,
-                                    onPressed: () {
-                                      setState(() {
-                                        quantity++;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          '€$productPrice',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.only(left: 4),
-                          // Moves the entire line to the right a bit
-                          child: Row(
+                        // main product images
+                        Container(
+                          margin: EdgeInsets.only(top: 10),
+                          child: Column(
                             children: [
                               Container(
-                                width: 12,
-                                height: 12,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF5271FF),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFFF5F5F5),
+                                      Color(0xFFF1F3FD),
+                                      Color(0xFFF5F5F5),
+                                    ], // Children
+                                  ),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
+                                  ),
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.topLeft,
+                                  children: [
+                                    SizedBox(
+                                      height: 380,
+                                      child: PageView.builder(
+                                        onPageChanged: (index) {
+                                          setState(() {
+                                            currentImageIndex = index;
+                                          });
+                                        },
+                                        itemCount: product.images.length,
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20),
+                                            child: Image.network(
+                                              product.images[index],
+                                              fit: BoxFit.contain,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    // capsule bar
+                                    Positioned(
+                                      top: 20,
+                                      left: 20,
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            isFavorite = !isFavorite;
+                                          });
+                                        },
+                                        child: Container(
+                                            padding: EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color:
+                                                  Colors.black.withOpacity(0.1),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 2,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                isFavorite
+                                                    ? Icons.favorite
+                                                    : Icons.favorite_border,
+                                                color: Color(0xFFF32357),
+                                                size: 32,
+                                              ),
+                                            )),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 16,
+                                      left: 0,
+                                      right: 0,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 60,
+                                            height: 9,
+                                            margin:
+                                            EdgeInsets.symmetric(horizontal: 4),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(5),
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ], // Children
                                 ),
                               ),
-                              SizedBox(width: 3),
-                              Text(
-                                'In stock: 67',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF5271FF),
+                              // Dots indicator
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    product.images.length,
+                                        (index) => Container(
+                                      margin: EdgeInsets.symmetric(horizontal: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: currentImageIndex == index
+                                            ? Color(0xFF312F2F)
+                                            : Color(0xFF312F2F).withOpacity(0.28),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on_outlined,
-                                size: 20, color: Color(0xFF312F2F)),
-                            SizedBox(width: 4),
-                            Text(
-                              'SHED A,B,C,D; Cube',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF312F2F),
+                              // Product details
+                              Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            product.name,
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(35),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              _buildQuantityButton(
+                                                  icon: Icons.remove,
+                                                  onPressed: () => updateQuantity(
+                                                      false,
+                                                      product.totalQuantity)),
+                                              SizedBox(width: 10),
+                                              Text(
+                                                '$quantity',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              _buildQuantityButton(
+                                                  icon: Icons.add,
+                                                  onPressed: () => updateQuantity(
+                                                      true, product.totalQuantity)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (showMaxQuantityWarning)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8.0),
+                                        child: Text(
+                                          'Maximum quantity available in stock reached',
+                                          style: TextStyle(
+                                            color: Color(0xFFF32357),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      '€${product.price.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 4),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFF5271FF),
+                                            ),
+                                          ),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            'In stock: ${product.totalQuantity}',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF5271FF),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on_outlined,
+                                            size: 20, color: Color(0xFF312F2F)),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          product.productLocations
+                                              .map((pl) =>
+                                          '${pl.location.building} ${pl.location.section} ${pl.location.floor}')
+                                              .join(', '),
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFF312F2F),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: product.categories
+                                          .map(
+                                            (category) => Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: Color(0xFFE7ECFF),
+                                            borderRadius:
+                                            BorderRadius.circular(16),
+                                          ),
+                                          child: Text(
+                                            category,
+                                            style: TextStyle(
+                                              color: Color(0xFF5271FF),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                          .toList(),
+                                    ),
+                                    SizedBox(height: 14),
+                                    _ShowProductInfo(
+                                        description: product.description),
+                                    SizedBox(height: 35),
+                                    SimilarItemsWidget(),
+                                    SizedBox(height: 24),
+                                  ], // Children
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFE7ECFF),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            'Writing Supplies',
-                            style: TextStyle(
-                                color: Color(0xFF5271FF), fontSize: 12),
+                            ], // Children
                           ),
                         ),
-                        SizedBox(height: 14),
-                        _ShowProductInfo(),
-                        SizedBox(height: 35),
-                        SimilarItemsWidget(),
-                        SizedBox(height: 24),
                       ], // Children
-                    ),
+                    )),
+                Positioned(
+                  // add to cart button fixed position
+                  left: 0,
+                  right: 0,
+                  bottom: 46,
+                  child: AddToCartButton(
+                    onPressed: () {
+                      // Add the product to the cart here
+                    },
                   ),
-                ], // Children
-              ),
-            ),
-            Positioned(
-              // add to cart button fixed position
-              left: 0,
-              right: 0,
-              bottom: 46,
-              child: AddToCartButton(
-                onPressed: () {
-                  // Add the product to the cart here
-                },
-              ),
-            ),
-          ] // Children
-          )),
+                ),
+              ], //
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -355,6 +440,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 // Show product information
 class _ShowProductInfo extends StatefulWidget {
+  final String description;
+
+  const _ShowProductInfo({required this.description});
+
   @override
   _ShowProductInfoState createState() => _ShowProductInfoState();
 }
@@ -400,27 +489,13 @@ class _ShowProductInfoState extends State<_ShowProductInfo> {
         if (_showProductInfo)
           Padding(
             padding: EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Montblanc StarWalker - unique and dynamic style",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF312F2F),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "The StarWalker Platinum Resin writing instrument has a unique and dynamic style. Black precious resin, which contrasts with the platinum-plated clip, and the floating Montblanc emblem offer a modern implementation of Montblanc's values for a timeless design of the future.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF312F2F),
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
+            child: Text(
+              widget.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF312F2F),
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
       ],
@@ -524,7 +599,8 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white, // The text color needs to be white for the gradient to show
+                  color: Colors
+                      .white, // The text color needs to be white for the gradient to show
                 ),
               ),
             ),
@@ -548,7 +624,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                     child: Text(
                       'Error loading products',
                       style: TextStyle(
-                        color: Colors.red,
+                        color: Color(0xFFF32357),
                         fontSize: 14,
                       ),
                     ),
@@ -585,4 +661,3 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
     );
   } // build
 }
-
