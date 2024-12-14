@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vending_locker_app/data/product.dart';
-// import 'package:vending_locker_app/services/product_service.dart';
+import 'package:vending_locker_app/entities/product/model.dart';
 
 class ProductPreviewCard extends StatefulWidget {
   final Product product;
@@ -87,7 +86,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
     return SizedBox(
       width: 150, // fixed width for each item
       child: Padding(
-        padding: EdgeInsets.all(6.0),
+        padding: EdgeInsets.all(6),
         child: Column(
           mainAxisSize: MainAxisSize.min, // use minimum space needed
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +102,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                     padding: EdgeInsets.all(4.0),
                     child: Center(
                       child: Image.network(
-                        product.images.isNotEmpty ? product.images[0] : '',
+                        product.images.isNotEmpty ? product.images[0].url : '',
                         fit: BoxFit.contain, // added to control image sizing
                         errorBuilder : (context, error, stackTrace) {
                           return Icon(Icons.broken_image, size: 48, color: Colors.grey);
@@ -177,14 +176,14 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
             // Product name and price
             SizedBox(height: 4),
             Text(
-              product.name,
+              product.title,
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
               maxLines: 2, // limit text to 2 lines
               overflow: TextOverflow.ellipsis, // show ... if text overflows
             ),
             SizedBox(height: 4),
             Text(
-              '€${product.price.toStringAsFixed(2)}',
+              '€${product.variants.first.calculatedPrice.calculatedAmount}',
               style: TextStyle(fontSize: 12, color: Color(0xFF312F2F)),
             ),
             if(widget.showLocation)
@@ -199,7 +198,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                   ),
                   SizedBox(width: 4),
                   Text(
-                    product.allLocationsString,
+                    '123',
                     style: TextStyle(
                       fontSize: 10,
                       color: Color.fromRGBO(49, 47, 47, 1),
@@ -216,7 +215,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  product.category,
+                  product.categories.first.name,
                   style: TextStyle(
                     color: Color.fromRGBO(82, 113, 255, 1),
                     fontSize: 9

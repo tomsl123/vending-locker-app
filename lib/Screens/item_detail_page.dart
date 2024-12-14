@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/product.dart';
-import '../services/product_service.dart';
+import '../entities/product/model.dart';
+import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
 
 void main() {
@@ -43,7 +43,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   void initState() {
     super.initState();
-    _productFuture = _productService.fetchProductById(widget.productId);
+    _productFuture = _productService.getById(widget.productId);
   }
 
   void updateQuantity(bool increase, int totalQuantity) {
@@ -147,7 +147,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 20),
                                             child: Image.network(
-                                              product.images[index],
+                                              product.images[index].url,
                                               fit: BoxFit.contain,
                                             ),
                                           );
@@ -246,7 +246,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            product.name,
+                                            product.title,
                                             style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.w500,
@@ -263,7 +263,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                                   icon: Icons.remove,
                                                   onPressed: () => updateQuantity(
                                                       false,
-                                                      product.totalQuantity)),
+                                                      1)),
                                               SizedBox(width: 10),
                                               Text(
                                                 '$quantity',
@@ -276,7 +276,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                               _buildQuantityButton(
                                                   icon: Icons.add,
                                                   onPressed: () => updateQuantity(
-                                                      true, product.totalQuantity)),
+                                                      true, 1)),
                                             ],
                                           ),
                                         ),
@@ -296,7 +296,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       ),
                                     SizedBox(height: 6),
                                     Text(
-                                      '€${product.price.toStringAsFixed(2)}',
+                                      '€${product.variants.first.calculatedPrice.calculatedAmount}',
                                       style: TextStyle(
                                         fontSize: 30,
                                         fontWeight: FontWeight.w700,
@@ -317,7 +317,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           ),
                                           SizedBox(width: 3),
                                           Text(
-                                            'In stock: ${product.totalQuantity}',
+                                            'In stock: 1',
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w500,
@@ -334,10 +334,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             size: 20, color: Color(0xFF312F2F)),
                                         SizedBox(width: 4),
                                         Text(
-                                          product.productLocations
-                                              .map((pl) =>
-                                          '${pl.location.building} ${pl.location.section} ${pl.location.floor}')
-                                              .join(', '),
+                                          '1',
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
@@ -361,7 +358,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             BorderRadius.circular(16),
                                           ),
                                           child: Text(
-                                            category,
+                                            category.name,
                                             style: TextStyle(
                                               color: Color(0xFF5271FF),
                                               fontSize: 12,
@@ -373,7 +370,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     ),
                                     SizedBox(height: 14),
                                     _ShowProductInfo(
-                                        description: product.description),
+                                        description: product.title),
                                     SizedBox(height: 35),
                                     SimilarItemsWidget(),
                                     SizedBox(height: 24),
@@ -555,8 +552,6 @@ class AddToCartButton extends StatelessWidget {
   }
 }
 
-// Similar items widget
-
 class SimilarItemsWidget extends StatefulWidget {
   const SimilarItemsWidget({super.key});
 
@@ -571,7 +566,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
   @override
   void initState() {
     super.initState();
-    _productsFuture = _productService.fetchProducts(); // Fetch products
+    _productsFuture = _productService.list(); // Fetch products
   }
 
   @override
