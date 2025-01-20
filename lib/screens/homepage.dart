@@ -30,79 +30,40 @@ class _HomepageState extends State<Homepage> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: Text(
-            'Hello $user!',
-            style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                letterSpacing: 0.4),
+          automaticallyImplyLeading: false,
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Hello $user!',
+              style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  letterSpacing: 0.4),
+            ),
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: Color(0xFF312F2F),
-                      size: 25,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CartPage()),
-                      );
-                    },
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_outlined,
-                          color: Color(0xFF312F2F),
-                          size: 25,
-                        ),
-                        onPressed: () {},
-                      ),
-                      Positioned(
-                        right: 3,
-                        top: 6,
-                        child: Container(
-                          width: 18,
-                          height: 18,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFEBD59),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '2',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                height: 16 / 10,
-                                letterSpacing: 0.4,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.settings_outlined,
-                      color: Color(0xFF312F2F),
-                      size: 25,
-                    ),
-                    onPressed: () {},
-                  ),
-                ],
+            IconButton(
+              icon: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Color(0xFF312F2F),
+                size: 25,
               ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CartPage()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.settings_outlined,
+                color: Color(0xFF312F2F),
+                size: 25,
+              ),
+              onPressed: () {},
             ),
           ],
         ),

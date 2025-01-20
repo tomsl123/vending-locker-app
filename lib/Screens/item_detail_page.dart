@@ -2,31 +2,13 @@ import 'package:flutter/material.dart';
 import '../entities/product/model.dart';
 import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        fontFamily: 'Poppins',
-      ),
-      home: const ProductDetailPage(),
-    );
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  final int productId;
+  final String productId;
 
   const ProductDetailPage(
-      {super.key, this.productId = 0}); // Default to first product for now
+      {super.key, this.productId = '0'}); // Default to first product for now
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -39,11 +21,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isFavorite = false;
   final ProductService _productService = ProductService();
   late Future<Product> _productFuture; // for the main item of the page
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
 
   @override
   void initState() {
     super.initState();
     _productFuture = _productService.getById(widget.productId);
+    _loadFavoriteStatus();
+    print('Product ID: ${widget.productId}');
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final bool? savedFavorite = await asyncPrefs.getBool('favorite_${widget.productId}');
+    if (savedFavorite != null) {
+      setState(() {
+        isFavorite = savedFavorite;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+    await asyncPrefs.setBool('favorite_${widget.productId}', isFavorite);
   }
 
   void updateQuantity(bool increase, int totalQuantity) {
@@ -68,6 +69,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: Color(0xFFF32357),
+            ),
+            onPressed: _toggleFavorite,
+          ),
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: FutureBuilder<Product>(
@@ -83,7 +101,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  'Error loading product',
+                  snapshot.error.toString(),
                   style: TextStyle(
                     color: Color(0xFFF32357),
                     fontSize: 14,
@@ -125,10 +143,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       Color(0xFFF5F5F5),
                                     ], // Children
                                   ),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(30),
-                                    topRight: Radius.circular(30),
-                                  ),
+                                  
                                 ),
                                 child: Stack(
                                   alignment: Alignment.topLeft,
@@ -152,62 +167,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             ),
                                           );
                                         },
-                                      ),
-                                    ),
-                                    // capsule bar
-                                    Positioned(
-                                      top: 20,
-                                      left: 20,
-                                      child: InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            isFavorite = !isFavorite;
-                                          });
-                                        },
-                                        child: Container(
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color:
-                                                  Colors.black.withOpacity(0.1),
-                                                  blurRadius: 8,
-                                                  spreadRadius: 2,
-                                                ),
-                                              ],
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                isFavorite
-                                                    ? Icons.favorite
-                                                    : Icons.favorite_border,
-                                                color: Color(0xFFF32357),
-                                                size: 32,
-                                              ),
-                                            )),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 16,
-                                      left: 0,
-                                      right: 0,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            width: 60,
-                                            height: 9,
-                                            margin:
-                                            EdgeInsets.symmetric(horizontal: 4),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                              BorderRadius.circular(5),
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ),
                                   ], // Children
