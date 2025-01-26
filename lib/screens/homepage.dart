@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:vending_locker_app/components/product_preview_card.dart';
 
+import '../components/custom_segmented_button.dart';
+import '../constants.dart';
+import '../entities/product/model.dart';
+import '../entities/product/service.dart';
 import 'cart_page.dart';
 
 class Homepage extends StatefulWidget {
@@ -11,26 +16,58 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   String user = 'David';
+  bool isLocationModalVisible = false;
+  String selectedLocation = 'SHED';
+  String selectedSection = 'A';
+  String selectedFloor = '1';
+  String selectedLocationId = Constants.locationIds.entries
+      .firstWhere((entry) => entry.value == 'SHED A1', orElse: () => MapEntry("", ""))
+      .key;
+
+  final ProductService _productService = ProductService();
+  late Future<List<Product>> _productsFuture = _productService.listByLocation(selectedLocationId);
+
+  Future<void> _refreshProducts() async {
+    setState(() {
+      String locationString = '$selectedLocation $selectedSection$selectedFloor';
+      selectedLocationId = Constants.locationIds.entries
+          .firstWhere((entry) => entry.value == locationString, orElse: () => MapEntry("", ""))
+          .key;
+      '$selectedLocation $selectedSection$selectedFloor';
+      _productsFuture = _productService.listByLocation(selectedLocationId);
+    });
+  }
+
+  void toggleLocationModal() {
+    setState(() {
+      isLocationModalVisible = !isLocationModalVisible;
+      if(!isLocationModalVisible) {
+        _refreshProducts();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(
-          'Hello $user!',
-          style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              color: Colors.black,
-              letterSpacing: 0.4),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              children: [
+    return Stack(
+      children: [
+        Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              title: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Hello $user!',
+                  style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                      letterSpacing: 0.4),
+                ),
+              ),
+              actions: [
                 IconButton(
                   icon: const Icon(
                     Icons.shopping_cart_outlined,
@@ -40,45 +77,10 @@ class _HomepageState extends State<Homepage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CartPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const CartPage()),
                     );
                   },
-                ),
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: Color(0xFF312F2F),
-                        size: 25,
-                      ),
-                      onPressed: () {},
-                    ),
-                    Positioned(
-                      right: 3,
-                      top: 6,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFEBD59),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '2',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              height: 16 / 10,
-                              letterSpacing: 0.4,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
                 IconButton(
                   icon: const Icon(
@@ -90,110 +92,432 @@ class _HomepageState extends State<Homepage> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(25.0),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: const Color.fromRGBO(
-                    248, 248, 248, 1), // Background color of the search bar
-                borderRadius: BorderRadius.circular(23.0), // Rounded corners
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {},
+            body: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: toggleLocationModal,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.place,
+                              size: 24,
+                              color: Color.fromRGBO(76, 145, 255, 1),
+                            ),
+                            Text(
+                              '$selectedLocation $selectedSection$selectedFloor',
+                              style: TextStyle(
+                                color: Color.fromRGBO(76, 145, 255, 1),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 3),
+                            AnimatedRotation(
+                              duration: Duration(milliseconds: 200),
+                              turns: isLocationModalVisible ? 0.5 : 0,
+                              child: Icon(
+                                Icons.arrow_drop_down,
+                                size: 24,
+                                color: Color.fromRGBO(76, 145, 255, 1),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color.fromRGBO(248, 248, 248,
+                              1), // Background color of the search bar
+                          borderRadius:
+                          BorderRadius.circular(23.0), // Rounded corners
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.search),
+                              onPressed: () {},
+                            ),
+                            const Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Search items...',
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.tune_outlined),
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
-                  const Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search items...',
-                        border: InputBorder.none,
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _refreshProducts,
+                    color: const Color(0xFF5271FF),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: MediaQuery.of(context).size.height -
+                              AppBar().preferredSize.height -
+                              MediaQuery.of(context).padding.top -
+                              100, // Approximate height of search bar and padding
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 22),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      ShaderMask(
+                                        // Adds gradient to text
+                                        shaderCallback: (Rect bounds) {
+                                          return LinearGradient(
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                            colors: [
+                                              Color.fromRGBO(49, 47, 47, 1),
+                                              Color.fromRGBO(82, 113, 255, 1),
+                                            ],
+                                          ).createShader(bounds);
+                                        },
+                                        child: Text(
+                                          'Category',
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {},
+                                        child: const Text(
+                                          'See all',
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color.fromRGBO(49, 47, 47, 1)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            SizedBox(
+                              height: 128,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: const [
+                                  SizedBox(
+                                    width: 20,
+                                  ),
+                                  // Element 1
+                                  CategoryItem(
+                                    image: 'assets/images/categories/writing.png',
+                                    title: 'Writing Supplies',
+                                  ),
+                                  SizedBox(width: 16), // Spacing between items
+
+                                  // Element 2
+                                  CategoryItem(
+                                    image: 'assets/images/categories/paper.png',
+                                    title: 'Paper Products',
+                                  ),
+                                  SizedBox(width: 16),
+
+                                  // Element 3
+                                  CategoryItem(
+                                    image: 'assets/images/categories/craft.png',
+                                    title: 'Art and Craft',
+                                  ),
+                                  SizedBox(width: 16),
+
+                                  // Element 4
+                                  CategoryItem(
+                                    image: 'assets/images/categories/gear.png',
+                                    title: 'Tech Gear',
+                                  ),
+                                  SizedBox(width: 16),
+
+                                  // Element 5
+                                  CategoryItem(
+                                    image: 'assets/images/categories/store.png',
+                                    title: 'Store & Sort',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(20, 37, 20, 0),
+                              child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: ShaderMask(
+                                    // Adds gradient to text
+                                    shaderCallback: (Rect bounds) {
+                                      return LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          Color.fromRGBO(49, 47, 47, 1),
+                                          Color.fromRGBO(82, 113, 255, 1),
+                                        ],
+                                      ).createShader(bounds);
+                                    },
+                                    child: Text(
+                                      'Recommended for You',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )),
+                            ),
+                            Padding(
+                                padding:
+                                EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                child: FutureBuilder<List<Product>>(
+                                  future: _productsFuture,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(height: 50),
+                                            CircularProgressIndicator(
+                                              color: Color(0xFF5271FF),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    if (snapshot.hasError || !snapshot.hasData) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(height: 50),
+                                            Text(
+                                              'Error loading products: ${snapshot.error}',
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 16,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    if (snapshot.data!.isEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(height: 50),
+                                            Text(
+                                              'There are no products for your location selection',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    return GridView.builder(
+                                      itemCount: snapshot.data!.length,
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 15.0,
+                                          mainAxisSpacing: 15.0,
+                                          childAspectRatio: 150 / 219),
+                                      itemBuilder: (context, index) {
+                                        final product =
+                                        snapshot.data![index]; // Access the product
+                                        return ProductPreviewCard(
+                                          product: product,
+                                          showCategory: true,
+                                          showLocation: true,
+                                        );
+                                      },
+                                    );
+                                  },
+                                )),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.tune_outlined),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'Category',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black // TODO: Gradient
-                      ),
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const Text(
-                    'See all',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Color.fromRGBO(49, 47, 47, 1)),
-                  ),
-                ),
+                )
               ],
             ),
-            const SizedBox(height: 15),
-            SizedBox(
-              height: 120,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: const [
-                  // Element 1
-                  CategoryItem(
-                    image: 'assets/images/categories/writing.png',
-                    title: 'Writing Supplies',
-                  ),
-                  SizedBox(width: 16), // Spacing between items
-
-                  // Element 2
-                  CategoryItem(
-                    image: 'assets/images/categories/paper.png',
-                    title: 'Paper Products',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 3
-                  CategoryItem(
-                    image: 'assets/images/categories/craft.png',
-                    title: 'Art and Craft',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 4
-                  CategoryItem(
-                    image: 'assets/images/categories/gear.png',
-                    title: 'Tech Gear',
-                  ),
-                  SizedBox(width: 16),
-
-                  // Element 5
-                  CategoryItem(
-                    image: 'assets/images/categories/store.png',
-                    title: 'Store & Sort',
-                  ),
-                ],
-              ),
-            )
-          ],
         ),
-      ),
+        if (isLocationModalVisible)
+          Stack(
+            children: [
+              GestureDetector(
+                onTap: toggleLocationModal,
+                child: Container(
+                  color: Colors.black.withOpacity(0.37), // Full-screen dim effect
+                ),
+              ),
+              Positioned(
+                top: AppBar().preferredSize.height +
+                    MediaQuery.of(context).padding.top +
+                    30,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 241,
+                  decoration: BoxDecoration(
+                    color: Color.fromRGBO(211, 215, 222, 1),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 27),
+                        const Text(
+                          'Please select a location for pickup',
+                          style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              height: 16 / 15,
+                              letterSpacing: 1.0,
+                              color: Color(0xFF312F2F),
+                              decoration: TextDecoration.none,
+                          ),
+                        ),
+                        const SizedBox(height: 23),
+                        const Text(
+                          'Building',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            height: 16 / 12,
+                            letterSpacing: 1.0,
+                            color: Color(0xFF312F2F),
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        CustomSegmentedButton(
+                          options: const ['SHED', 'Hall', 'Cube'],
+                          selectedOption: selectedLocation,
+                          onOptionSelected: (value) {
+                            setState(() {
+                              selectedLocation = value;
+                            });
+                          },
+                          size: SegmentSize.md,
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Section',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      height: 16 / 12,
+                                      letterSpacing: 1.0,
+                                      color: Color(0xFF312F2F),
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  CustomSegmentedButton(
+                                    options: const ['A', 'B', 'C', 'D'],
+                                    selectedOption: selectedSection,
+                                    onOptionSelected: (value) {
+                                      setState(() {
+                                        selectedSection = value;
+                                      });
+                                    },
+                                    size: SegmentSize.sm,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Floor',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      height: 16 / 12,
+                                      letterSpacing: 1.0,
+                                      color: Color(0xFF312F2F),
+                                      decoration: TextDecoration.none,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  CustomSegmentedButton(
+                                    options: const ['1', '2', '3', '4', '5'],
+                                    selectedOption: selectedFloor,
+                                    onOptionSelected: (value) {
+                                      setState(() {
+                                        selectedFloor = value;
+                                      });
+                                    },
+                                    size: SegmentSize.sm,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

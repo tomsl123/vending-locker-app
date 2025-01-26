@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vending_locker_app/screens/homepage.dart';
+import './screens/homepage.dart';
 
 void main() {
   runApp(const MainApp());
