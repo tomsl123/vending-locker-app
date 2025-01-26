@@ -49,11 +49,7 @@ class CustomSegmentedButton extends StatelessWidget {
                             borderRadius: size == SegmentSize.md
                                 ? BorderRadius.circular(15)
                                 : BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              begin: Alignment(-0.7914, 0),
-                              end: Alignment(1.2966, 0),
-                              colors: [Color(0xFFFFBD59), Color(0xFFFFE1B3)],
-                            ),
+                            color: Color.fromRGBO(255, 64, 78, 1),
                             boxShadow: const [
                               BoxShadow(
                                 offset: Offset(2, 2),

@@ -1,5 +1,3 @@
-import '../location/model.dart';
-
 class ProductImage {
   final String url;
 
@@ -221,23 +219,6 @@ class Product {
               ?.map((category) => ProductCategory.fromJson(category))
               .toList() ??
           [],
-    );
-  }
-}
-
-class ProductLocation {
-  final Location location;
-  final int quantity;
-
-  ProductLocation({
-    required this.location,
-    required this.quantity,
-  });
-
-  factory ProductLocation.fromJson(Map<String, dynamic> json) {
-    return ProductLocation(
-      location: Location.fromJson(json['location']),
-      quantity: json['quantity'],
     );
   }
 }
