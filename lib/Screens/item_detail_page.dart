@@ -22,6 +22,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+enum SegmentSize { sm, md, lg }
+
 class ProductDetailPage extends StatefulWidget {
   final int productId;
 
@@ -33,6 +35,7 @@ class ProductDetailPage extends StatefulWidget {
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
+  String selectedOption = 'Black';
   int currentImageIndex = 0;
   int quantity = 1;
   bool showMaxQuantityWarning = false;
@@ -85,7 +88,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Text(
                   'Error loading product',
                   style: TextStyle(
-                    color: Color(0xFFF32357),
+                    color: Color(0xFFFF404E),
                     fontSize: 14,
                   ),
                 ),
@@ -96,7 +99,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Text(
                   'Product not found',
                   style: TextStyle(
-                    color: Color(0xFFF32357),
+                    color: Color(0xFFFF404E),
                     fontSize: 14,
                   ),
                 ),
@@ -154,7 +157,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         },
                                       ),
                                     ),
-                                    // capsule bar
                                     Positioned(
                                       top: 20,
                                       left: 20,
@@ -183,12 +185,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                                 isFavorite
                                                     ? Icons.favorite
                                                     : Icons.favorite_border,
-                                                color: Color(0xFFF32357),
+                                                color: Color(0xFFFF404E),
                                                 size: 32,
                                               ),
                                             )),
                                       ),
                                     ),
+                                    // capsule bar
                                     Positioned(
                                       top: 16,
                                       left: 0,
@@ -288,7 +291,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         child: Text(
                                           'Maximum quantity available in stock reached',
                                           style: TextStyle(
-                                            color: Color(0xFFF32357),
+                                            color: Color(0xFFFF404E),
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -312,16 +315,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             height: 12,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: Color(0xFF5271FF),
+                                              color: Color(0x524C91FF),
                                             ),
                                           ),
-                                          SizedBox(width: 3),
+                                          SizedBox(width: 8),
                                           Text(
                                             'In stock: ${product.totalQuantity}',
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w500,
-                                              color: Color(0xFF5271FF),
+                                              color: Color(0xFF4C91FF),
                                             ),
                                           ),
                                         ],
@@ -356,14 +359,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           padding: EdgeInsets.symmetric(
                                               horizontal: 12, vertical: 5),
                                           decoration: BoxDecoration(
-                                            color: Color(0xFFE7ECFF),
+                                            color: Color(0xFFEDF4FF),
                                             borderRadius:
                                             BorderRadius.circular(16),
                                           ),
                                           child: Text(
                                             category,
                                             style: TextStyle(
-                                              color: Color(0xFF5271FF),
+                                              color: Color(0xFF4C91FF),
                                               fontSize: 12,
                                             ),
                                           ),
@@ -371,12 +374,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                       )
                                           .toList(),
                                     ),
-                                    SizedBox(height: 14),
+
+                                    // Selector
+                                    SizedBox(height: 20),
+                                    _buildSelector(),
+
+                                    // Product information
+                                    SizedBox(height: 20),
                                     _ShowProductInfo(
                                         description: product.description),
-                                    SizedBox(height: 35),
+
+                                    // Similar items
+                                    SizedBox(height: 38),
                                     SimilarItemsWidget(),
-                                    SizedBox(height: 24),
+
+                                    SizedBox(height: 20), // Bottom padding
+                                    // Add to cart button
                                   ], // Children
                                 ),
                               ),
@@ -410,17 +423,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     required VoidCallback onPressed,
   }) {
     return Container(
-      width: 37, // Keep the reduced size of the container
-      height: 37, // Keep the reduced size of the container
+      width: 37,
+      height: 37,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFBD59),
-            Color(0xFFFFCB7C),
-          ],
-        ),
+        color: Color(0xFFFF404E),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -436,7 +442,92 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       ),
     );
   }
+
+
+  // Selector
+  Widget _buildSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 5),
+        const Text(
+          "Please select an option", // Neutral text
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF312F2F),
+          ),
+        ),
+        const SizedBox(height: 5),
+        CustomSegmentedButton(
+          options: const ['Black', 'Red', 'Green', 'Blue'],
+          selected: selectedOption,
+          onOptionSelected: (value) {
+            setState(() {
+              selectedOption = value;
+            });
+          },
+          size: SegmentSize.md,
+        ),
+      ],
+    );
+  }
 }
+
+// Custom segmented button
+class CustomSegmentedButton extends StatelessWidget {
+  final List<String> options;
+  final String selected;
+  final ValueChanged<String> onOptionSelected;
+  final SegmentSize size;
+
+  const CustomSegmentedButton({super.key,
+    required this.options,
+    required this.selected,
+    required this.onOptionSelected,
+    this.size = SegmentSize.md,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 7,
+      runSpacing: 7,
+      children: options.map((option) => _buildOptionButton(option)).toList(),
+    );
+  }
+
+  Widget _buildOptionButton(String option) {
+    final isSelected = option == selected;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: TextButton(
+        onPressed: () => onOptionSelected(option),
+        style: TextButton.styleFrom(
+          backgroundColor: isSelected
+              ? const Color(0xFFFF404E)
+              : const Color(0xFFF5F5F5),
+          foregroundColor: isSelected
+              ? const Color(0xFFFFFFFF)
+              : const Color(0xFF242424),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          alignment: Alignment.center,
+        ),
+        child: Text(
+          option,
+          style: const TextStyle(
+            fontSize: 14,
+            overflow: TextOverflow.ellipsis, // Ensures text doesn't overflow
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 // Show product information
 class _ShowProductInfo extends StatefulWidget {
@@ -527,10 +618,11 @@ class AddToCartButton extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            image: const DecorationImage(
-              image: AssetImage('assets/images/mesh-gradient.png'),
-              fit: BoxFit.fill,
-            ),
+            // image: const DecorationImage(
+            //   image: AssetImage('assets/images/mesh-gradient.png'),
+            //   fit: BoxFit.fill,
+            // ),
+            color: Color(0xFF111111),
             boxShadow: const [
               BoxShadow(
                 offset: Offset(0, 4),
@@ -555,8 +647,9 @@ class AddToCartButton extends StatelessWidget {
   }
 }
 
-// Similar items widget
 
+
+// Similar items widget
 class SimilarItemsWidget extends StatefulWidget {
   const SimilarItemsWidget({super.key});
 
@@ -582,26 +675,12 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: ShaderMask(
-              // Adds gradient to text
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color.fromRGBO(49, 47, 47, 1),
-                    Color.fromRGBO(75, 99, 211, 1),
-                  ],
-                ).createShader(bounds);
-              },
-              child: Text(
-                'Similar Items',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Colors
-                      .white, // The text color needs to be white for the gradient to show
-                ),
+            child: Text(
+              'Similar Items',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF312F2F),
               ),
             ),
           ),
@@ -614,7 +693,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFF5271FF),
+                      color: Color(0xFF4C91FF),
                     ),
                   );
                 }
@@ -624,7 +703,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                     child: Text(
                       'Error loading products',
                       style: TextStyle(
-                        color: Color(0xFFF32357),
+                        color: Color(0xFFFF404E),
                         fontSize: 14,
                       ),
                     ),
