@@ -17,7 +17,7 @@ class ProductDetailPage extends StatefulWidget {
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
-  String selectedOption = 'Black';
+  List<String> selectedOptions = [];
   int currentImageIndex = 0;
   int quantity = 1;
   bool showMaxQuantityWarning = false;
@@ -124,6 +124,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               );
             }
             final product = snapshot.data!;
+            print(product.variants.first.title); // TODO: why this says option name?
             return Stack(
               children: [
                 SingleChildScrollView(
@@ -389,7 +390,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                                     // Selector
                                     SizedBox(height: 20),
-                                    _buildSelector(),
+                                    ...product.variants.asMap().entries.map((entry) {
+                                      int index = entry.key;
+                                      ProductVariant variant = entry.value;
+                                      print(variant.title);
+                                      // Call the _buildSelector method and pass the index
+                                      return _buildSelector(index, variant);
+                                    }),
 
                                     // Product information
                                     SizedBox(height: 20),
@@ -455,14 +462,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 
   // Selector
-  Widget _buildSelector() {
+  Widget _buildSelector(int index, ProductVariant variant) {
+    List<String> variantOptionStrings = variant.options.map((option) => option.value).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 5),
-        const Text(
-          "Please select an option", // Neutral text
-          style: TextStyle(
+        Text(
+          variant.title, // Neutral text
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Color(0xFF312F2F),
@@ -470,11 +478,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
         const SizedBox(height: 5),
         CustomSegmentedButton(
-          options: const ['Black', 'Red', 'Green', 'Blue'],
-          selected: selectedOption,
+          options: variantOptionStrings,
+          selected: index < selectedOptions.length ? selectedOptions[index] : variantOptionStrings.first,
           onOptionSelected: (value) {
             setState(() {
-              selectedOption = value;
+              selectedOptions[index] = value;
             });
           },
           size: SegmentSize.md,
