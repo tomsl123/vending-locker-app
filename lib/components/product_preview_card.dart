@@ -53,7 +53,13 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
   Widget build(BuildContext context) {
     final product = widget.product;
 
-    Map<String, int> quantitiesByLocation = product.variants[0].getQuantitiesByLocation().map((key, value) => MapEntry(Constants.locationIds[key] ?? key, value));
+    Map<String, int> quantitiesByLocation = product.variants.fold<Map<String, int>>({}, (map, variant) {
+      variant.getQuantitiesByLocation().forEach((locationId, quantity) {
+        final locationName = Constants.locationIds[locationId] ?? locationId;
+        map[locationName] = (map[locationName] ?? 0) + quantity;
+      });
+      return map;
+    });
 
     return GestureDetector(
       onTap: () {

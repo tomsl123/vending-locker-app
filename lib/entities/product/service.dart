@@ -17,7 +17,6 @@ class ProductService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
       final List<dynamic> products = responseData['products'];
-      print(products[0]['variants'][0]['inventory_items']);
       return products.map((product) => Product.fromJson(product)).toList();
     } else {
       throw Exception('Failed to fetch products');

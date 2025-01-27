@@ -7,32 +7,41 @@ class ProductImage {
 }
 
 class ProductOptionValue {
+  final String id;
   final String value;
+  final String optionId;
 
   ProductOptionValue({
+    required this.id,
     required this.value,
+    required this.optionId,
   });
 
   factory ProductOptionValue.fromJson(Map<String, dynamic> json) {
     return ProductOptionValue(
+      id: json['id'],
       value: json['value'],
+      optionId: json['option_id'],
     );
   }
 }
 
 class ProductOption {
+  final String id;
   final String title;
   final List<ProductOptionValue> values;
 
   ProductOption({
+    required this.id,
     required this.title,
     required this.values,
   });
 
   factory ProductOption.fromJson(Map<String, dynamic> json) {
     return ProductOption(
+      id: json['id'],
       title: json['title'],
-      values: json['values']
+      values: (json['values'] as List<dynamic>)
           .map((value) => ProductOptionValue.fromJson(value))
           .toList(),
     );
@@ -150,12 +159,14 @@ class InventoryItem {
 }
 
 class ProductVariant {
+  final String id;
   final String title;
   final List<ProductOptionValue> options;
   final ProductVariantCalculatedPrice calculatedPrice;
   final List<InventoryItem> inventoryItems;
 
   ProductVariant({
+    required this.id,
     required this.title,
     required this.options,
     required this.calculatedPrice,
@@ -164,6 +175,7 @@ class ProductVariant {
 
   factory ProductVariant.fromJson(Map<String, dynamic> json) {
     return ProductVariant(
+      id: json['id'],
       title: json['title'],
       options: (json['options'] as List<dynamic>)
           .map((option) => ProductOptionValue.fromJson(option))
@@ -194,6 +206,7 @@ class Product {
   final List<ProductImage> images;
   final List<ProductVariant> variants;
   final List<ProductCategory> categories;
+  final List<ProductOption> options;
 
   Product({
     required this.id,
@@ -202,6 +215,7 @@ class Product {
     required this.images,
     required this.variants,
     required this.categories,
+    required this.options,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -219,6 +233,11 @@ class Product {
               ?.map((category) => ProductCategory.fromJson(category))
               .toList() ??
           [],
+      options: (json['options'] as List<dynamic>?)
+              ?.map((option) => ProductOption.fromJson(option))
+              .toList() ??
+          [],
     );
   }
 }
+

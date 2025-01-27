@@ -6,6 +6,7 @@ import '../constants.dart';
 import '../entities/product/model.dart';
 import '../entities/product/service.dart';
 import 'cart_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -25,7 +26,34 @@ class _HomepageState extends State<Homepage> {
       .key;
 
   final ProductService _productService = ProductService();
-  late Future<List<Product>> _productsFuture = _productService.listByLocation(selectedLocationId);
+  late Future<List<Product>> _productsFuture;
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with default location first
+    _productsFuture = Future.value(<Product>[]);
+    _loadSavedLocation();
+  }
+
+  Future<void> _loadSavedLocation() async {
+    final savedLocation = await asyncPrefs.getString('selectedLocation');
+    final savedSection = await asyncPrefs.getString('selectedSection');
+    final savedFloor = await asyncPrefs.getString('selectedFloor');
+
+    setState(() {
+      selectedLocation = savedLocation ?? 'SHED';
+      selectedSection = savedSection ?? 'A';
+      selectedFloor = savedFloor ?? '1';
+      final locationString = '$selectedLocation $selectedSection$selectedFloor';
+      selectedLocationId = Constants.locationIds.entries
+          .firstWhere((entry) => entry.value == locationString, 
+              orElse: () => MapEntry("", ""))
+          .key;
+      _productsFuture = _productService.listByLocation(selectedLocationId);
+    });
+  }
 
   Future<void> _refreshProducts() async {
     setState(() {
@@ -438,9 +466,8 @@ class _HomepageState extends State<Homepage> {
                           options: const ['SHED', 'Hall', 'Cube'],
                           selectedOption: selectedLocation,
                           onOptionSelected: (value) {
-                            setState(() {
-                              selectedLocation = value;
-                            });
+                            setState(() => selectedLocation = value);
+                            asyncPrefs.setString('selectedLocation', value);
                           },
                           size: SegmentSize.md,
                         ),
@@ -468,9 +495,8 @@ class _HomepageState extends State<Homepage> {
                                     options: const ['A', 'B', 'C', 'D'],
                                     selectedOption: selectedSection,
                                     onOptionSelected: (value) {
-                                      setState(() {
-                                        selectedSection = value;
-                                      });
+                                      setState(() => selectedSection = value);
+                                      asyncPrefs.setString('selectedSection', value);
                                     },
                                     size: SegmentSize.sm,
                                   ),
@@ -499,9 +525,8 @@ class _HomepageState extends State<Homepage> {
                                     options: const ['1', '2', '3', '4', '5'],
                                     selectedOption: selectedFloor,
                                     onOptionSelected: (value) {
-                                      setState(() {
-                                        selectedFloor = value;
-                                      });
+                                      setState(() => selectedFloor = value);
+                                      asyncPrefs.setString('selectedFloor', value);
                                     },
                                     size: SegmentSize.sm,
                                   ),

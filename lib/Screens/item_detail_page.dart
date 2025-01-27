@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:vending_locker_app/components/variant_selector_button.dart';
 import '../entities/product/model.dart';
 import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
 
   const ProductDetailPage(
-      {super.key, this.productId = '0'}); // Default to first product for now
+      {super.key, this.productId = '0'});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -19,16 +21,43 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   int quantity = 1;
   bool showMaxQuantityWarning = false;
   bool isFavorite = false;
+  String selectedLocation = 'SHED';
+  String selectedSection = 'A';
+  String selectedFloor = '1';
+  String selectedLocationId = Constants.locationIds.entries
+      .firstWhere((entry) => entry.value == 'SHED A1', orElse: () => MapEntry("", ""))
+      .key;
   final ProductService _productService = ProductService();
   late Future<Product> _productFuture; // for the main item of the page
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  late Future<(Product, void)> _combinedFuture;
 
   @override
   void initState() {
     super.initState();
     _productFuture = _productService.getById(widget.productId);
+    _combinedFuture = Future.wait([
+      _productFuture,
+      _loadSavedLocation(),
+    ]).then((results) => (results[0] as Product, null));
     _loadFavoriteStatus();
-    print('Product ID: ${widget.productId}');
+  }
+
+  Future<void> _loadSavedLocation() async {
+    final savedLocation = await asyncPrefs.getString('selectedLocation');
+    final savedSection = await asyncPrefs.getString('selectedSection');
+    final savedFloor = await asyncPrefs.getString('selectedFloor');
+
+    setState(() {
+      selectedLocation = savedLocation ?? 'SHED';
+      selectedSection = savedSection ?? 'A';
+      selectedFloor = savedFloor ?? '1';
+      final locationString = '$selectedLocation $selectedSection$selectedFloor';
+      selectedLocationId = Constants.locationIds.entries
+          .firstWhere((entry) => entry.value == locationString, 
+              orElse: () => MapEntry("", ""))
+          .key;
+    });
   }
 
   Future<void> _loadFavoriteStatus() async {
@@ -88,8 +117,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       ),
       body: SafeArea(
         bottom: false,
-        child: FutureBuilder<Product>(
-          future: _productFuture,
+        child: FutureBuilder<(Product, void)>(
+          future: _combinedFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
@@ -120,7 +149,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ),
               );
             }
-            final product = snapshot.data!;
+            final product = snapshot.data!.$1;
+            final totalStock = product.variants
+                .map((variant) => variant.getQuantitiesByLocation()[selectedLocationId] ?? 0)
+                .fold(0, (a, b) => a + b);
+
+            Map<String, int> quantitiesByLocation = product.variants.fold<Map<String, int>>({}, (map, variant) {
+      variant.getQuantitiesByLocation().forEach((locationId, quantity) {
+        final locationName = Constants.locationIds[locationId] ?? locationId;
+        map[locationName] = (map[locationName] ?? 0) + quantity;
+      });
+      return map;
+    });
             return Stack(
               children: [
                 SingleChildScrollView(
@@ -169,7 +209,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         },
                                       ),
                                     ),
-                                  ], // Children
+                                  ],
                                 ),
                               ),
                               // Dots indicator
@@ -276,7 +316,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           ),
                                           SizedBox(width: 3),
                                           Text(
-                                            'In stock: 1',
+                                            'In stock: $totalStock',
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w500,
@@ -293,7 +333,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                             size: 20, color: Color(0xFF312F2F)),
                                         SizedBox(width: 4),
                                         Text(
-                                          '1',
+                                          quantitiesByLocation.entries.map((entry) => "${entry.key}: ${entry.value}").join(", "),
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
@@ -326,6 +366,48 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         ),
                                       )
                                           .toList(),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Column(
+                                      children: product.options.map((option) {
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Select " + option.title,
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(0xFFADADAD),
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                children: option.values.map((value) {
+                                                  final variant = product.variants.firstWhere((variant) => variant.options.firstWhere((o) => o.optionId == option.id).id == value.id);
+                                                  bool isInStock = (variant.getQuantitiesByLocation()[selectedLocationId] ?? 0)> 0;
+
+                                                  return Row(
+                                                    children: [
+                                                      VariantSelectorButton(
+                                                        text: value.value,
+                                                        isSelected: false,
+                                                        onTap: () {},
+                                                        isDisabled: !isInStock,
+                                                      ),
+                                                      SizedBox(width: 8),
+                                                    ],
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ),
+                                            SizedBox(height: 16),
+                                          ],
+                                        );
+                                      }).toList(),
                                     ),
                                     SizedBox(height: 14),
                                     _ShowProductInfo(
@@ -369,14 +451,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       width: 37, // Keep the reduced size of the container
       height: 37, // Keep the reduced size of the container
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFBD59),
-            Color(0xFFFFCB7C),
-          ],
-        ),
+        color: Color(0xFFFF404E),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -483,10 +558,7 @@ class AddToCartButton extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            image: const DecorationImage(
-              image: AssetImage('assets/images/mesh-gradient.png'),
-              fit: BoxFit.fill,
-            ),
+            color: Color(0xFF111111),
             boxShadow: const [
               BoxShadow(
                 offset: Offset(0, 4),
