@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vending_locker_app/components/custom_segmented_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -12,6 +12,7 @@ class _CartPageState extends State<CartPage> {
   String selectedLocation = 'SHED';
   String selectedSection = 'A';
   String selectedFloor = '1';
+  late Future<String> _pickupLocationFuture;
 
   List<CartItem> items = [
     CartItem(
@@ -54,6 +55,20 @@ class _CartPageState extends State<CartPage> {
       items.fold(0, (sum, item) => sum + (item.price * item.quantity));
 
   @override
+  void initState() {
+    super.initState();
+    _pickupLocationFuture = _loadSavedLocation();
+  }
+
+  Future<String> _loadSavedLocation() async {
+    final prefs = await SharedPreferences.getInstance();
+    selectedLocation = prefs.getString('selectedLocation') ?? 'SHED';
+    selectedSection = prefs.getString('selectedSection') ?? 'A';
+    selectedFloor = prefs.getString('selectedFloor') ?? '1';
+    return '$selectedLocation $selectedSection$selectedFloor';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -83,14 +98,6 @@ class _CartPageState extends State<CartPage> {
               children: [
                 Stack(
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: Color(0xFF312F2F),
-                        size: 25,
-                      ),
-                      onPressed: () {},
-                    ),
                     Positioned(
                       right: 3,
                       top: 6,
@@ -133,114 +140,7 @@ class _CartPageState extends State<CartPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 35),
-                  const Text(
-                    'Please select a location for pickup',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      height: 16 / 15,
-                      letterSpacing: 1.0,
-                      color: Color(0xFF312F2F),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Building',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      height: 16 / 12,
-                      letterSpacing: 1.0,
-                      color: Color(0xFF312F2F),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  CustomSegmentedButton(
-                    options: const ['SHED', 'Hall', 'Cube'],
-                    selectedOption: selectedLocation,
-                    onOptionSelected: (value) {
-                      setState(() {
-                        selectedLocation = value;
-                      });
-                    },
-                    size: SegmentSize.md,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Section',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                height: 16 / 12,
-                                letterSpacing: 1.0,
-                                color: Color(0xFF312F2F),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            CustomSegmentedButton(
-                              options: const ['A', 'B', 'C', 'D'],
-                              selectedOption: selectedSection,
-                              onOptionSelected: (value) {
-                                setState(() {
-                                  selectedSection = value;
-                                });
-                              },
-                              size: SegmentSize.sm,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Floor',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                height: 16 / 12,
-                                letterSpacing: 1.0,
-                                color: Color(0xFF312F2F),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            CustomSegmentedButton(
-                              options: const ['1', '2', '3', '4', '5'],
-                              selectedOption: selectedFloor,
-                              onOptionSelected: (value) {
-                                setState(() {
-                                  selectedFloor = value;
-                                });
-                              },
-                              size: SegmentSize.sm,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 25),
+      
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -445,10 +345,7 @@ class _CartPageState extends State<CartPage> {
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/mesh-gradient.png'),
-                        fit: BoxFit.cover,
-                      ),
+                      color: const Color(0xFF111111),
                       boxShadow: const [
                         BoxShadow(
                           offset: Offset(0, 4),

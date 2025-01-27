@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vending_locker_app/components/variant_selector_button.dart';
+import 'package:vending_locker_app/entities/cart/service.dart';
 import '../entities/product/model.dart';
 import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
@@ -9,8 +10,7 @@ import '../constants.dart';
 class ProductDetailPage extends StatefulWidget {
   final String productId;
 
-  const ProductDetailPage(
-      {super.key, this.productId = '0'});
+  const ProductDetailPage({super.key, this.productId = '0'});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -25,12 +25,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   String selectedSection = 'A';
   String selectedFloor = '1';
   String selectedLocationId = Constants.locationIds.entries
-      .firstWhere((entry) => entry.value == 'SHED A1', orElse: () => MapEntry("", ""))
+      .firstWhere((entry) => entry.value == 'SHED A1',
+          orElse: () => MapEntry("", ""))
       .key;
   final ProductService _productService = ProductService();
-  late Future<Product> _productFuture; // for the main item of the page
+  late Future<Product> _productFuture;
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  final CartService _cartService = CartService();
   late Future<(Product, void)> _combinedFuture;
+  ProductVariant? selectedVariant;
+  bool _isAddingToCart = false;
 
   @override
   void initState() {
@@ -39,7 +43,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     _combinedFuture = Future.wait([
       _productFuture,
       _loadSavedLocation(),
-    ]).then((results) => (results[0] as Product, null));
+    ]).then((results) {
+      final product = results[0] as Product;
+      selectedVariant = product.variants.first;
+      return (product, null);
+    });
     _loadFavoriteStatus();
   }
 
@@ -54,14 +62,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       selectedFloor = savedFloor ?? '1';
       final locationString = '$selectedLocation $selectedSection$selectedFloor';
       selectedLocationId = Constants.locationIds.entries
-          .firstWhere((entry) => entry.value == locationString, 
+          .firstWhere((entry) => entry.value == locationString,
               orElse: () => MapEntry("", ""))
           .key;
     });
   }
 
   Future<void> _loadFavoriteStatus() async {
-    final bool? savedFavorite = await asyncPrefs.getBool('favorite_${widget.productId}');
+    final bool? savedFavorite =
+        await asyncPrefs.getBool('favorite_${widget.productId}');
     if (savedFavorite != null) {
       setState(() {
         isFavorite = savedFavorite;
@@ -76,10 +85,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     await asyncPrefs.setBool('favorite_${widget.productId}', isFavorite);
   }
 
-  void updateQuantity(bool increase, int totalQuantity) {
+  void updateQuantity(bool increase) {
     setState(() {
       if (increase) {
-        if (quantity < totalQuantity) {
+        if (quantity <
+            (selectedVariant?.getQuantitiesByLocation()[selectedLocationId] ??
+                0)) {
           quantity++;
           showMaxQuantityWarning = false;
         } else {
@@ -150,211 +161,225 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               );
             }
             final product = snapshot.data!.$1;
-            final totalStock = product.variants
-                .map((variant) => variant.getQuantitiesByLocation()[selectedLocationId] ?? 0)
-                .fold(0, (a, b) => a + b);
+            final totalStock = selectedVariant
+                    ?.getQuantitiesByLocation()[selectedLocationId] ??
+                0;
 
-            Map<String, int> quantitiesByLocation = product.variants.fold<Map<String, int>>({}, (map, variant) {
-      variant.getQuantitiesByLocation().forEach((locationId, quantity) {
-        final locationName = Constants.locationIds[locationId] ?? locationId;
-        map[locationName] = (map[locationName] ?? 0) + quantity;
-      });
-      return map;
-    });
+            Map<ProductOption, List<ProductOptionValue>> options = product.variants.fold<Map<ProductOption, List<ProductOptionValue>>>({}, (map, variant) {
+              variant.options.forEach((optionValue) {
+                final option = product.options.firstWhere((o) => o.id == optionValue.optionId);
+                map.putIfAbsent(option, () => []);
+                if (!map[option]!.any((v) => v.id == optionValue.id)) {
+                  map[option]!.add(optionValue);
+                }
+              });
+              return map;
+            });
+
+            Map<String, int> quantitiesByLocation =
+                product.variants.fold<Map<String, int>>({}, (map, variant) {
+              variant.getQuantitiesByLocation().forEach((locationId, quantity) {
+                final locationName =
+                    Constants.locationIds[locationId] ?? locationId;
+                map[locationName] = (map[locationName] ?? 0) + quantity;
+              });
+              return map;
+            });
             return Stack(
               children: [
                 SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // main product images
-                        Container(
-                          margin: EdgeInsets.only(top: 10),
-                          child: Column(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFF5F5F5),
-                                      Color(0xFFF1F3FD),
-                                      Color(0xFFF5F5F5),
-                                    ], // Children
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // main product images
+                    Container(
+                      margin: EdgeInsets.only(top: 10),
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFFF5F5F5),
+                                  Color(0xFFF1F3FD),
+                                  Color(0xFFF5F5F5),
+                                ], // Children
+                              ),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.topLeft,
+                              children: [
+                                SizedBox(
+                                  height: 380,
+                                  child: PageView.builder(
+                                    onPageChanged: (index) {
+                                      setState(() {
+                                        currentImageIndex = index;
+                                      });
+                                    },
+                                    itemCount: product.images.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        child: Image.network(
+                                          product.images[index].url,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  
                                 ),
-                                child: Stack(
-                                  alignment: Alignment.topLeft,
+                              ],
+                            ),
+                          ),
+                          // Dots indicator
+                          Padding(
+                            padding: const EdgeInsets.only(top: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                product.images.length,
+                                (index) => Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 4),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: currentImageIndex == index
+                                        ? Color(0xFF312F2F)
+                                        : Color(0xFF312F2F).withOpacity(0.28),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Product details
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    SizedBox(
-                                      height: 380,
-                                      child: PageView.builder(
-                                        onPageChanged: (index) {
-                                          setState(() {
-                                            currentImageIndex = index;
-                                          });
-                                        },
-                                        itemCount: product.images.length,
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20),
-                                            child: Image.network(
-                                              product.images[index].url,
-                                              fit: BoxFit.contain,
+                                    Expanded(
+                                      child: Text(
+                                        product.title,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(35),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          _buildQuantityButton(
+                                              icon: Icons.remove,
+                                              onPressed: () =>
+                                                  updateQuantity(false)),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            '$quantity',
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w600,
                                             ),
-                                          );
-                                        },
+                                          ),
+                                          SizedBox(width: 10),
+                                          _buildQuantityButton(
+                                              icon: Icons.add,
+                                              onPressed: () =>
+                                                  updateQuantity(true)),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              // Dots indicator
-                              Padding(
-                                padding: const EdgeInsets.only(top: 15),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(
-                                    product.images.length,
-                                        (index) => Container(
-                                      margin: EdgeInsets.symmetric(horizontal: 4),
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: currentImageIndex == index
-                                            ? Color(0xFF312F2F)
-                                            : Color(0xFF312F2F).withOpacity(0.28),
+                                if (showMaxQuantityWarning)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Text(
+                                      'Maximum quantity available in stock reached',
+                                      style: TextStyle(
+                                        color: Color(0xFFF32357),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
+                                SizedBox(height: 6),
+                                Text(
+                                  '€${selectedVariant?.calculatedPrice?.calculatedAmount}',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              ),
-                              // Product details
-                              Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                SizedBox(height: 8),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 4),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(0xFF5271FF),
+                                        ),
+                                      ),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'In stock: $totalStock',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF5271FF),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 3),
+                                Row(
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            product.title,
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(35),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              _buildQuantityButton(
-                                                  icon: Icons.remove,
-                                                  onPressed: () => updateQuantity(
-                                                      false,
-                                                      1)),
-                                              SizedBox(width: 10),
-                                              Text(
-                                                '$quantity',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              SizedBox(width: 10),
-                                              _buildQuantityButton(
-                                                  icon: Icons.add,
-                                                  onPressed: () => updateQuantity(
-                                                      true, 1)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (showMaxQuantityWarning)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: Text(
-                                          'Maximum quantity available in stock reached',
-                                          style: TextStyle(
-                                            color: Color(0xFFF32357),
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                    SizedBox(height: 6),
+                                    Icon(Icons.location_on_outlined,
+                                        size: 20, color: Color(0xFF312F2F)),
+                                    SizedBox(width: 4),
                                     Text(
-                                      '€${product.variants.first.calculatedPrice.calculatedAmount}',
+                                      quantitiesByLocation.entries
+                                          .map((entry) =>
+                                              "${entry.key}: ${entry.value}")
+                                          .join(", "),
                                       style: TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF312F2F),
                                       ),
                                     ),
-                                    SizedBox(height: 8),
-                                    Padding(
-                                      padding: EdgeInsets.only(left: 4),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Color(0xFF5271FF),
-                                            ),
-                                          ),
-                                          SizedBox(width: 3),
-                                          Text(
-                                            'In stock: $totalStock',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF5271FF),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 3),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.location_on_outlined,
-                                            size: 20, color: Color(0xFF312F2F)),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          quantitiesByLocation.entries.map((entry) => "${entry.key}: ${entry.value}").join(", "),
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            color: Color(0xFF312F2F),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: product.categories
-                                          .map(
-                                            (category) => Container(
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: product.categories
+                                      .map(
+                                        (category) => Container(
                                           padding: EdgeInsets.symmetric(
                                               horizontal: 12, vertical: 5),
                                           decoration: BoxDecoration(
                                             color: Color(0xFFE7ECFF),
                                             borderRadius:
-                                            BorderRadius.circular(16),
+                                                BorderRadius.circular(16),
                                           ),
                                           child: Text(
                                             category.name,
@@ -365,76 +390,157 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           ),
                                         ),
                                       )
-                                          .toList(),
-                                    ),
-                                    SizedBox(height: 20),
-                                    Column(
-                                      children: product.options.map((option) {
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Select " + option.title,
-                                              style: TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                                color: Color(0xFFADADAD),
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Row(
-                                                children: option.values.map((value) {
-                                                  final variant = product.variants.firstWhere((variant) => variant.options.firstWhere((o) => o.optionId == option.id).id == value.id);
-                                                  bool isInStock = (variant.getQuantitiesByLocation()[selectedLocationId] ?? 0)> 0;
-
-                                                  return Row(
-                                                    children: [
-                                                      VariantSelectorButton(
-                                                        text: value.value,
-                                                        isSelected: false,
-                                                        onTap: () {},
-                                                        isDisabled: !isInStock,
-                                                      ),
-                                                      SizedBox(width: 8),
-                                                    ],
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            ),
-                                            SizedBox(height: 16),
-                                          ],
-                                        );
-                                      }).toList(),
-                                    ),
-                                    SizedBox(height: 14),
-                                    _ShowProductInfo(
-                                        description: product.title),
-                                    SizedBox(height: 35),
-                                    SimilarItemsWidget(),
-                                    SizedBox(height: 24),
-                                  ], // Children
+                                      .toList(),
                                 ),
-                              ),
-                            ], // Children
+                                SizedBox(height: 20),
+                                Column(
+                                  children: options.entries.map((option) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Select ${option.key.title}",
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFFADADAD),
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children:
+                                                option.value.map((value) {
+                                              final variant = product.variants
+                                                  .firstWhere((variant) =>
+                                                      variant.options
+                                                          .firstWhere((o) =>
+                                                              o.optionId ==
+                                                              option.key.id)
+                                                          .id ==
+                                                      value.id);
+                                              bool isInStock =
+                                                  (variant.getQuantitiesByLocation()[
+                                                              selectedLocationId] ??
+                                                          0) >
+                                                      0;
+                                              bool isSelected =
+                                                  selectedVariant == variant;
+
+                                              return Row(
+                                                children: [
+                                                  VariantSelectorButton(
+                                                    text: value.value,
+                                                    isSelected: isSelected,
+                                                    onTap: () {
+                                                      setState(() {
+                                                        selectedVariant =
+                                                            variant;
+                                                        quantity = 1;
+                                                      });
+                                                    },
+                                                    isDisabled: !isInStock,
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                ],
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+                                        SizedBox(height: 16),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                                SizedBox(height: 14),
+                                _ShowProductInfo(description: product.title),
+                                SizedBox(height: 35),
+                                SimilarItemsWidget(),
+                                SizedBox(height: 24),
+                              ], // Children
+                            ),
                           ),
-                        ),
-                      ], // Children
-                    )),
+                        ], // Children
+                      ),
+                    ),
+                  ], // Children
+                )),
                 Positioned(
                   // add to cart button fixed position
                   left: 0,
                   right: 0,
                   bottom: 46,
-                  child: AddToCartButton(
-                    onPressed: () {
-                      // Add the product to the cart here
-                    },
+                  child: Center(
+                    child: ElevatedButton(
+                      onPressed: _isAddingToCart ? null : () async {
+                        setState(() {
+                          _isAddingToCart = true;
+                        });
+                        
+                        try {
+                          final cartId = await _cartService.getOrCreateCartId();
+                          await _cartService.addLineItem(
+                              cartId, selectedVariant!.id, quantity);
+                              
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added to cart'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } finally {
+                          setState(() {
+                            _isAddingToCart = false;
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        fixedSize: Size(242, 60),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: _isAddingToCart ? Color(0xFF666666) : Color(0xFF111111),
+                          boxShadow: const [
+                            BoxShadow(
+                              offset: Offset(0, 4),
+                              blurRadius: 4,
+                              color: Color.fromRGBO(0, 0, 0, 0.15),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: _isAddingToCart
+                              ? SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'Add to Cart',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ], //
+              ],
             );
           },
         ),
@@ -489,7 +595,7 @@ class _ShowProductInfoState extends State<_ShowProductInfo> {
       children: [
         SizedBox(
           width:
-          MediaQuery.of(context).size.width, // Makes container full width
+              MediaQuery.of(context).size.width, // Makes container full width
           child: TextButton.icon(
             style: TextButton.styleFrom(
               backgroundColor: Color(0xFFF5F5F4),
@@ -530,55 +636,6 @@ class _ShowProductInfoState extends State<_ShowProductInfo> {
             ),
           ),
       ],
-    );
-  } // build
-} // _ShowProductInfoState
-
-// Add to cart button
-class AddToCartButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const AddToCartButton({super.key, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () {
-          // Add the product to the cart here
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          padding: EdgeInsets.zero,
-          fixedSize: Size(242, 60),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            color: Color(0xFF111111),
-            boxShadow: const [
-              BoxShadow(
-                offset: Offset(0, 4),
-                blurRadius: 4,
-                color: Color.fromRGBO(0, 0, 0, 0.15),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              'Add to Cart',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -684,6 +741,6 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
             ),
           ),
         ] // Children
-    );
+        );
   } // build
 }

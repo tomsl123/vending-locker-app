@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vending_locker_app/entities/product/model.dart';
 import '../constants.dart';
-import '../screens/item_detail_page.dart';
 
 class ProductPreviewCard extends StatefulWidget {
   final Product product;
   final bool isFavorite;
   final bool showCategory;
   final bool showLocation;
+  final VoidCallback? onTap;
 
   const ProductPreviewCard({
     super.key,
     required this.product,
     this.isFavorite = false,
     this.showCategory = false,
-    this.showLocation = false
+    this.showLocation = false,
+    this.onTap,
   });
 
   @override
@@ -62,14 +63,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
     });
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(productId: product.id),
-          ),
-        );
-      },
+      onTap: widget.onTap,
       child: SizedBox(
         width: 150, // fixed width for each item
         child: Padding(
@@ -164,7 +158,7 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
               ),
               SizedBox(height: 4),
               Text(
-                '€${product.variants.first.calculatedPrice.calculatedAmount}',
+                '€${product.variants.first.calculatedPrice?.calculatedAmount}',
                 style: TextStyle(fontSize: 12, color: Color(0xFF312F2F)),
               ),
               if(widget.showLocation)

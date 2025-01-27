@@ -8,7 +8,7 @@ class ProductService {
   Future<List<Product>> list() async {
     final response = await http.get(
         Uri.parse(
-            '${Constants.medusaApiUrl}/store/products?region_id=reg_01JEPF0D5S5A5W36RMC70XHM2Y&fields=*categories,*variants.inventory_items.inventory.location_levels,+variants.inventory_quantity'),
+            '${Constants.medusaApiUrl}/store/products?region_id=${Constants.berlinCampusRegionId}&fields=*categories,*variants.inventory_items.inventory.location_levels,+variants.inventory_quantity'),
         headers: {
           'x-publishable-api-key':
               Constants.medusaApiKey
@@ -50,7 +50,7 @@ class ProductService {
   Future<Product> getById(String id) async {
     final response = await http.get(
         Uri.parse(
-            '${Constants.medusaApiUrl}/store/products/$id?region_id=reg_01JEPF0D5S5A5W36RMC70XHM2Y&fields=*categories,*variants.inventory_items.inventory.location_levels,+variants.inventory_quantity'),
+            '${Constants.medusaApiUrl}/store/products/$id?region_id=${Constants.berlinCampusRegionId}&fields=*categories,*variants.inventory_items.inventory.location_levels,+variants.inventory_quantity'),
         headers: {
           'x-publishable-api-key':
               Constants.medusaApiKey
@@ -59,7 +59,6 @@ class ProductService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
       final Map<String, dynamic> product = responseData['product'];
-      log(product.toString());
       return Product.fromJson(product);
     } else {
       throw Exception('Failed to fetch product');

@@ -29,21 +29,16 @@ class ProductOptionValue {
 class ProductOption {
   final String id;
   final String title;
-  final List<ProductOptionValue> values;
 
   ProductOption({
     required this.id,
     required this.title,
-    required this.values,
   });
 
   factory ProductOption.fromJson(Map<String, dynamic> json) {
     return ProductOption(
       id: json['id'],
       title: json['title'],
-      values: (json['values'] as List<dynamic>)
-          .map((value) => ProductOptionValue.fromJson(value))
-          .toList(),
     );
   }
 }
@@ -162,14 +157,14 @@ class ProductVariant {
   final String id;
   final String title;
   final List<ProductOptionValue> options;
-  final ProductVariantCalculatedPrice calculatedPrice;
+  final ProductVariantCalculatedPrice? calculatedPrice;
   final List<InventoryItem> inventoryItems;
 
   ProductVariant({
     required this.id,
     required this.title,
     required this.options,
-    required this.calculatedPrice,
+    this.calculatedPrice,
     required this.inventoryItems,
   });
 
@@ -180,8 +175,9 @@ class ProductVariant {
       options: (json['options'] as List<dynamic>)
           .map((option) => ProductOptionValue.fromJson(option))
           .toList(),
-      calculatedPrice:
-          ProductVariantCalculatedPrice.fromJson(json['calculated_price']),
+      calculatedPrice: json['calculated_price'] != null
+          ? ProductVariantCalculatedPrice.fromJson(json['calculated_price'])
+          : null,
       inventoryItems: (json['inventory_items'] as List<dynamic>)
           .map((item) => InventoryItem.fromJson(item))
           .toList(),
