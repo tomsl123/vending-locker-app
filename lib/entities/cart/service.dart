@@ -33,6 +33,48 @@ class CartService {
     }
   }
 
+  Future<Cart> setLineItemQuantity(String cartId, String lineItemId, int quantity) async {
+    final Map<String, dynamic> body = {
+      'quantity': quantity,
+    };
+
+    final response = await http.post(
+      Uri.parse('${Constants.medusaApiUrl}/store/carts/$cartId/line-items/$lineItemId?fields=*items.product.categories,*items.product.options,*items.product.variants,*items.product.variants.options,*items.product.variants.inventory_items.inventory.location_levels,+items.product.variants.inventory_quantity'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-publishable-api-key': Constants.medusaApiKey,
+      },
+      body: jsonEncode(body),
+    );
+
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      log(responseData.toString());
+      return Cart.fromJson(responseData['cart']);
+    } else {
+      throw Exception('Failed to set line item quantity');
+    }
+  }
+
+  Future<Cart> deleteLineItem(String cartId, String lineItemId) async {
+    final response = await http.delete(
+      Uri.parse('${Constants.medusaApiUrl}/store/carts/$cartId/line-items/$lineItemId?fields=*items.product.categories,*items.product.options,*items.product.variants,*items.product.variants.options,*items.product.variants.inventory_items.inventory.location_levels,+items.product.variants.inventory_quantity'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-publishable-api-key': Constants.medusaApiKey,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      log(responseData.toString());
+      return Cart.fromJson(responseData['cart']);
+    } else {
+      throw Exception('Failed to delete line item from cart');
+    }
+  }
+
   Future<String> getOrCreateCartId() async {
     // Try to get existing cart ID from storage
     final String? existingCartId = await asyncPrefs.getString('cart_id');

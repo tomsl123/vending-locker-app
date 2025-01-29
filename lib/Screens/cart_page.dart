@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../entities/cart/model.dart';
+import '../entities/cart/service.dart';
+
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
@@ -12,52 +15,32 @@ class _CartPageState extends State<CartPage> {
   String selectedLocation = 'SHED';
   String selectedSection = 'A';
   String selectedFloor = '1';
+
+  final CartService _cartService = CartService();
   late Future<String> _pickupLocationFuture;
-
-  List<CartItem> items = [
-    CartItem(
-      name: 'Gel Ink Ballpoint Pen (Black)',
-      price: 4.00,
-      image: 'assets/images/pen.png',
-      quantity: 1,
-    ),
-    CartItem(
-      name: 'Notebook',
-      price: 8.00,
-      image: 'assets/images/pen.png',
-      quantity: 1,
-      warning: 'This item is not available at SHED A 1',
-    ),
-    CartItem(
-      name: 'Notebook',
-      price: 8.00,
-      image: 'assets/images/pen.png',
-      quantity: 1,
-      warning: 'This item is not available at SHED A 1',
-    ),
-    CartItem(
-      name: 'Notebook',
-      price: 8.00,
-      image: 'assets/images/pen.png',
-      quantity: 1,
-      warning: 'This item is not available at SHED A 1',
-    ),
-    CartItem(
-      name: 'Notebook',
-      price: 8.00,
-      image: 'assets/images/pen.png',
-      quantity: 1,
-      warning: 'This item is not available at SHED A 1',
-    ),
-  ];
-
-  double get total =>
-      items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  late Future<Cart?> _cartFuture;
 
   @override
   void initState() {
     super.initState();
+    _cartFuture = Future.value(null);
     _pickupLocationFuture = _loadSavedLocation();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    String cartId = await _cartService.getOrCreateCartId();
+    print(cartId);
+    setState(() {
+      _cartFuture = _cartService.getById(cartId);
+    });
+  }
+
+  Future<void> _updateLineItemQuantity(String cartId, String lineItemId, int quantity) async {
+    setState(() {
+
+      _cartFuture = _cartService.setLineItemQuantity(cartId, lineItemId, quantity);
+    });
   }
 
   Future<String> _loadSavedLocation() async {
@@ -75,249 +58,250 @@ class _CartPageState extends State<CartPage> {
       extendBody: true,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        centerTitle: true,
+        automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Cart',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-            height: 16 / 28,
-            letterSpacing: 0.4,
-            color: Colors.black,
+        title: Align(
+          alignment: Alignment.center,
+          child: Text(
+            'My Cart',
+            style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+                letterSpacing: 0.4),
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    Positioned(
-                      right: 3,
-                      top: 6,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFEBD59),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '2',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              height: 16 / 10,
-                              letterSpacing: 0.4,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.settings_outlined,
-                    color: Color(0xFF312F2F),
-                    size: 25,
-                  ),
-                  onPressed: () {},
-                ),
-              ],
+          IconButton(
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: Color(0xFF312F2F),
+              size: 25,
             ),
+            onPressed: () {},
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-      
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                return Column(
-                  children: [
-                    Dismissible(
-                      key: UniqueKey(),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (direction) {
-                        setState(() {
-                          items.removeAt(index);
-                        });
-                      },
-                      background: Container(
-                        width: 79,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF4070),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 27),
-                        child: const Icon(Icons.delete,
-                            color: Colors.white, size: 25),
-                      ),
-                      child: Container(
-                        height: 125,
-                        padding: const EdgeInsets.only(
-                            left: 12, right: 18, top: 14, bottom: 14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F5F4),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              items[index].image,
-                              width: 100,
-                              height: 100,
+
+            FutureBuilder<Cart?>(
+              future: _cartFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (snapshot.hasData) {
+                  final cart = snapshot.data!;
+                  final items = cart.items;
+
+                  if (items.isEmpty) {
+                    return const Center(child: Text('Your cart is empty.'));
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return Column(
+                        children: [
+                          Dismissible(
+                            key: UniqueKey(),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) {
+                              setState(() {
+
+                              });
+                            },
+                            background: Container(
+                              width: 79,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF4070),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 27),
+                              child: const Icon(Icons.delete, color: Colors.white, size: 25),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      width: 162,
-                                      child: Text(
-                                        items[index].name,
+                            child: Container(
+                              height: 125,
+                              padding: const EdgeInsets.only(
+                                  left: 12, right: 18, top: 14, bottom: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F4),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Thumbnail or placeholder if null
+                                  item.thumbnail != null
+                                      ? Image.network(
+                                    item.thumbnail!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  )
+                                      : Container(
+                                    width: 100,
+                                    height: 100,
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.image_not_supported),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 6),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Product title, with variant
+                                          SizedBox(
+                                            width: 162,
+                                            child: Text(
+                                              '${item.productTitle} (${item.variantTitle})',
+                                              style: const TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                height: 14 / 13,
+                                                letterSpacing: 0.4,
+                                                color: Color(0xFF312F2F),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          // Unit price
+                                          Text(
+                                            '€${item.unitPrice.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              height: 14 / 13,
+                                              letterSpacing: 0.4,
+                                              color: Color(0xFF312F2F),
+                                            ),
+                                          ),
+                                          // Warning message. TODO: Either use for something or remove
+                                          if (false) ...[
+                                            const SizedBox(height: 7),
+                                            SizedBox(
+                                              width: 144,
+                                              child: Row(
+                                                crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.error_outline,
+                                                    size: 14,
+                                                    color: Color(0xFFF32357),
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Expanded(
+                                                    child: Text(
+                                                      item.productDescription!,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Poppins',
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w400,
+                                                        height: 14 / 11,
+                                                        letterSpacing: 0.4,
+                                                        color: Color(0xFFF32357),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      // Increment quantity button
+                                      SizedBox(
+                                        width: 25,
+                                        height: 25,
+                                        child: IconButton(
+                                          style: IconButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          icon: const Icon(
+                                            Icons.add,
+                                            size: 16,
+                                            color: Colors.black,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _updateLineItemQuantity(cart.id, item.id, item.quantity+1);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      // Quantity display
+                                      Text(
+                                        '${item.quantity}',
                                         style: const TextStyle(
                                           fontFamily: 'Poppins',
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                          height: 14 / 13,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          height: 22 / 15,
                                           letterSpacing: 0.4,
                                           color: Color(0xFF312F2F),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      '€${items[index].price.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        height: 14 / 13,
-                                        letterSpacing: 0.4,
-                                        color: Color(0xFF312F2F),
-                                      ),
-                                    ),
-                                    if (items[index].warning != null) ...[
-                                      const SizedBox(height: 7),
+                                      // Decrement quantity button
                                       SizedBox(
-                                        width: 144,
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Icon(
-                                              Icons.error_outline,
-                                              size: 14,
-                                              color: Color(0xFFF32357),
-                                            ),
-                                            const SizedBox(width: 3),
-                                            Expanded(
-                                              child: Text(
-                                                items[index].warning!,
-                                                style: const TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w400,
-                                                  height: 14 / 11,
-                                                  letterSpacing: 0.4,
-                                                  color: Color(0xFFF32357),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                        width: 25,
+                                        height: 25,
+                                        child: IconButton(
+                                          style: IconButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          icon: const Icon(
+                                            Icons.remove,
+                                            size: 16,
+                                            color: Colors.black,
+                                          ),
+                                          onPressed: () {
+                                            if (item.quantity > 1) {
+                                              setState(() {
+                                                _updateLineItemQuantity(cart.id, item.id, item.quantity-1);
+                                              });
+                                            }
+                                          },
                                         ),
                                       ),
                                     ],
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: 25,
-                                  height: 25,
-                                  child: IconButton(
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      padding: EdgeInsets.zero,
-                                    ),
-                                    icon: const Icon(
-                                      Icons.add,
-                                      size: 16,
-                                      color: Colors.black,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        items[index].quantity++;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Text(
-                                  '${items[index].quantity}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    height: 22 / 15,
-                                    letterSpacing: 0.4,
-                                    color: Color(0xFF312F2F),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 25,
-                                  height: 25,
-                                  child: IconButton(
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      padding: EdgeInsets.zero,
-                                    ),
-                                    icon: const Icon(
-                                      Icons.remove,
-                                      size: 16,
-                                      color: Colors.black,
-                                    ),
-                                    onPressed: () {
-                                      if (items[index].quantity > 1) {
-                                        setState(() {
-                                          items[index].quantity--;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (index < items.length - 1) const SizedBox(height: 15),
-                  ],
-                );
+                          ),
+                          if (index < items.length - 1) const SizedBox(height: 15),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  return const Center(child: Text('No data found.'));
+                }
               },
             ),
+
             const SizedBox(height: 150), // Add padding at bottom for button
           ],
         ),
@@ -377,17 +361,36 @@ class _CartPageState extends State<CartPage> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                Text(
-                                  'in total ${total.toStringAsFixed(2)}€',
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w400,
-                                    height: 22 / 12,
-                                    letterSpacing: 0.4,
-                                    color: Colors.white,
-                                  ),
+                                FutureBuilder<Cart?>(
+                                  future: _cartFuture,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasError) {
+                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                    } else if (snapshot.hasData) {
+                                      final cart = snapshot.data!;
+                                      final items = cart.items;
+
+                                      if (items.isEmpty) {
+                                        return const Center(child: Text('Your cart is empty.'));
+                                      }
+
+                                      return Text(
+                                        'in total ${cart.total}€',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400,
+                                          height: 22 / 12,
+                                          letterSpacing: 0.4,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    } else {
+                                      return const Center(child: Text('No data found.'));
+                                    }
+                                  },
                                 ),
+
                               ],
                             ),
                           ),
