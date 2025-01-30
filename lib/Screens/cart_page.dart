@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vending_locker_app/Screens/order_confirmation_page.dart';
 
 import '../entities/cart/model.dart';
 import '../entities/cart/service.dart';
@@ -352,7 +353,14 @@ class _CartPageState extends State<CartPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    OrderConfirmationPage()),
+                          );
+                        },
                         borderRadius: BorderRadius.circular(30),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(76, 11, 76, 5),
