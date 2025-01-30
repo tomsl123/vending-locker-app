@@ -36,10 +36,11 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-  Future<void> _updateLineItemQuantity(String cartId, String lineItemId, int quantity) async {
+  Future<void> _updateLineItemQuantity(
+      String cartId, String lineItemId, int quantity) async {
     setState(() {
-
-      _cartFuture = _cartService.setLineItemQuantity(cartId, lineItemId, quantity);
+      _cartFuture =
+          _cartService.setLineItemQuantity(cartId, lineItemId, quantity);
     });
   }
 
@@ -88,7 +89,6 @@ class _CartPageState extends State<CartPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-
             FutureBuilder<Cart?>(
               future: _cartFuture,
               builder: (context, snapshot) {
@@ -117,8 +117,10 @@ class _CartPageState extends State<CartPage> {
                             key: UniqueKey(),
                             direction: DismissDirection.endToStart,
                             onDismissed: (direction) {
-                              setState(() {
-
+                              _cartService
+                                  .deleteLineItem(cart.id, item.id)
+                                  .then((_) {
+                                _loadCart();
                               });
                             },
                             background: Container(
@@ -129,7 +131,8 @@ class _CartPageState extends State<CartPage> {
                               ),
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 27),
-                              child: const Icon(Icons.delete, color: Colors.white, size: 25),
+                              child: const Icon(Icons.delete,
+                                  color: Colors.white, size: 25),
                             ),
                             child: Container(
                               height: 125,
@@ -144,23 +147,25 @@ class _CartPageState extends State<CartPage> {
                                   // Thumbnail or placeholder if null
                                   item.thumbnail != null
                                       ? Image.network(
-                                    item.thumbnail!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  )
+                                          item.thumbnail!,
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        )
                                       : Container(
-                                    width: 100,
-                                    height: 100,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.image_not_supported),
-                                  ),
+                                          width: 100,
+                                          height: 100,
+                                          color: Colors.grey[300],
+                                          child: const Icon(
+                                              Icons.image_not_supported),
+                                        ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 6),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           // Product title, with variant
                                           SizedBox(
@@ -197,7 +202,7 @@ class _CartPageState extends State<CartPage> {
                                               width: 144,
                                               child: Row(
                                                 crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   const Icon(
                                                     Icons.error_outline,
@@ -211,10 +216,12 @@ class _CartPageState extends State<CartPage> {
                                                       style: const TextStyle(
                                                         fontFamily: 'Poppins',
                                                         fontSize: 11,
-                                                        fontWeight: FontWeight.w400,
+                                                        fontWeight:
+                                                            FontWeight.w400,
                                                         height: 14 / 11,
                                                         letterSpacing: 0.4,
-                                                        color: Color(0xFFF32357),
+                                                        color:
+                                                            Color(0xFFF32357),
                                                       ),
                                                     ),
                                                   ),
@@ -227,7 +234,8 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                   ),
                                   Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       // Increment quantity button
                                       SizedBox(
@@ -245,7 +253,8 @@ class _CartPageState extends State<CartPage> {
                                           ),
                                           onPressed: () {
                                             setState(() {
-                                              _updateLineItemQuantity(cart.id, item.id, item.quantity+1);
+                                              _updateLineItemQuantity(cart.id,
+                                                  item.id, item.quantity + 1);
                                             });
                                           },
                                         ),
@@ -279,7 +288,8 @@ class _CartPageState extends State<CartPage> {
                                           onPressed: () {
                                             if (item.quantity > 1) {
                                               setState(() {
-                                                _updateLineItemQuantity(cart.id, item.id, item.quantity-1);
+                                                _updateLineItemQuantity(cart.id,
+                                                    item.id, item.quantity - 1);
                                               });
                                             }
                                           },
@@ -291,7 +301,8 @@ class _CartPageState extends State<CartPage> {
                               ),
                             ),
                           ),
-                          if (index < items.length - 1) const SizedBox(height: 15),
+                          if (index < items.length - 1)
+                            const SizedBox(height: 15),
                         ],
                       );
                     },
@@ -365,13 +376,16 @@ class _CartPageState extends State<CartPage> {
                                   future: _cartFuture,
                                   builder: (context, snapshot) {
                                     if (snapshot.hasError) {
-                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                      return Center(
+                                          child:
+                                              Text('Error: ${snapshot.error}'));
                                     } else if (snapshot.hasData) {
                                       final cart = snapshot.data!;
                                       final items = cart.items;
 
                                       if (items.isEmpty) {
-                                        return const Center(child: Text('Your cart is empty.'));
+                                        return const Center(
+                                            child: Text('Your cart is empty.'));
                                       }
 
                                       return Text(
@@ -386,11 +400,11 @@ class _CartPageState extends State<CartPage> {
                                         ),
                                       );
                                     } else {
-                                      return const Center(child: Text('No data found.'));
+                                      return const Center(
+                                          child: Text('No data found.'));
                                     }
                                   },
                                 ),
-
                               ],
                             ),
                           ),

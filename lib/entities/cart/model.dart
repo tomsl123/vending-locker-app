@@ -34,6 +34,7 @@ class CartLineItem {
   final double taxTotal;
   final double discountTotal;
   final double discountTaxTotal;
+  final DateTime createdAt;
 
   CartLineItem({
     required this.id,
@@ -69,51 +70,52 @@ class CartLineItem {
     required this.taxTotal,
     required this.discountTotal,
     required this.discountTaxTotal,
+    required this.createdAt,
   });
 
   factory CartLineItem.fromJson(Map<String, dynamic> json) {
     return CartLineItem(
-      id: json['id'],
-      title: json['title'],
-      subtitle: json['subtitle'],
-      thumbnail: json['thumbnail'],
-      quantity: json['quantity'],
-      product: Product.fromJson({
-        ...json['product'],
-        'title': json['product_title'],
-        'thumbnail': json['thumbnail'],
-        'images': [],
-      }),
-      productId: json['product_id'],
-      productTitle: json['product_title'],
-      productDescription: json['product_description'],
-      productSubtitle: json['product_subtitle'],
-      productType: json['product_type'],
-      productCollection: json['product_collection'],
-      productHandle: json['product_handle'],
-      variantId: json['variant_id'],
-      variantSku: json['variant_sku'],
-      variantBarcode: json['variant_barcode'],
-      variantTitle: json['variant_title'],
-      variantOptionValues: json['variant_option_values'] != null 
-        ? Map<String, String>.from(json['variant_option_values'])
-        : null,
-      requiresShipping: json['requires_shipping'],
-      isTaxInclusive: json['is_tax_inclusive'],
-      compareAtUnitPrice: json['compare_at_unit_price']?.toDouble(),
-      unitPrice: json['unit_price']?.toDouble() ?? 0,
-      originalTotal: json['original_total']?.toDouble() ?? 0,
-      originalSubtotal: json['original_subtotal']?.toDouble() ?? 0,
-      originalTaxTotal: json['original_tax_total']?.toDouble() ?? 0,
-      itemTotal: json['item_total']?.toDouble() ?? 0,
-      itemSubtotal: json['item_subtotal']?.toDouble() ?? 0,
-      itemTaxTotal: json['item_tax_total']?.toDouble() ?? 0,
-      total: json['total']?.toDouble() ?? 0,
-      subtotal: json['subtotal']?.toDouble() ?? 0,
-      taxTotal: json['tax_total']?.toDouble() ?? 0,
-      discountTotal: json['discount_total']?.toDouble() ?? 0,
-      discountTaxTotal: json['discount_tax_total']?.toDouble() ?? 0,
-    );
+        id: json['id'],
+        title: json['title'],
+        subtitle: json['subtitle'],
+        thumbnail: json['thumbnail'],
+        quantity: json['quantity'],
+        product: Product.fromJson({
+          ...json['product'],
+          'title': json['product_title'],
+          'thumbnail': json['thumbnail'],
+          'images': [],
+        }),
+        productId: json['product_id'],
+        productTitle: json['product_title'],
+        productDescription: json['product_description'],
+        productSubtitle: json['product_subtitle'],
+        productType: json['product_type'],
+        productCollection: json['product_collection'],
+        productHandle: json['product_handle'],
+        variantId: json['variant_id'],
+        variantSku: json['variant_sku'],
+        variantBarcode: json['variant_barcode'],
+        variantTitle: json['variant_title'],
+        variantOptionValues: json['variant_option_values'] != null
+            ? Map<String, String>.from(json['variant_option_values'])
+            : null,
+        requiresShipping: json['requires_shipping'],
+        isTaxInclusive: json['is_tax_inclusive'],
+        compareAtUnitPrice: json['compare_at_unit_price']?.toDouble(),
+        unitPrice: json['unit_price']?.toDouble() ?? 0,
+        originalTotal: json['original_total']?.toDouble() ?? 0,
+        originalSubtotal: json['original_subtotal']?.toDouble() ?? 0,
+        originalTaxTotal: json['original_tax_total']?.toDouble() ?? 0,
+        itemTotal: json['item_total']?.toDouble() ?? 0,
+        itemSubtotal: json['item_subtotal']?.toDouble() ?? 0,
+        itemTaxTotal: json['item_tax_total']?.toDouble() ?? 0,
+        total: json['total']?.toDouble() ?? 0,
+        subtotal: json['subtotal']?.toDouble() ?? 0,
+        taxTotal: json['tax_total']?.toDouble() ?? 0,
+        discountTotal: json['discount_total']?.toDouble() ?? 0,
+        discountTaxTotal: json['discount_tax_total']?.toDouble() ?? 0,
+        createdAt: DateTime.parse(json['created_at']));
   }
 }
 
@@ -121,7 +123,7 @@ class Cart {
   final String id;
   final String currencyCode;
   final double originalItemTotal;
-  final double originalItemSubtotal; 
+  final double originalItemSubtotal;
   final double originalItemTaxTotal;
   final double itemTotal;
   final double itemSubtotal;
@@ -208,16 +210,20 @@ class Cart {
       shippingSubtotal: (json['shipping_subtotal'] ?? 0).toDouble(),
       shippingTaxTotal: (json['shipping_tax_total'] ?? 0).toDouble(),
       originalShippingTotal: (json['original_shipping_total'] ?? 0).toDouble(),
-      originalShippingSubtotal: (json['original_shipping_subtotal'] ?? 0).toDouble(),
-      originalShippingTaxTotal: (json['original_shipping_tax_total'] ?? 0).toDouble(),
+      originalShippingSubtotal:
+          (json['original_shipping_subtotal'] ?? 0).toDouble(),
+      originalShippingTaxTotal:
+          (json['original_shipping_tax_total'] ?? 0).toDouble(),
       regionId: json['region_id'],
       customerId: json['customer_id'],
       salesChannelId: json['sales_channel_id'],
       email: json['email'],
-      items: (json['items'] as List<dynamic>?)
-          ?.map((item) => CartLineItem.fromJson(item))
-          .toList() ?? [],
-      createdAt: json['created_at'] != null 
+      items: ((json['items'] as List<dynamic>?)
+              ?.map((item) => CartLineItem.fromJson(item))
+              .toList()
+            ?..sort((a, b) => a.createdAt.compareTo(b.createdAt))) ??
+          [],
+      createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
       updatedAt: json['updated_at'] != null
@@ -226,4 +232,3 @@ class Cart {
     );
   }
 }
-
