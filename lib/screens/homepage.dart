@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:vending_locker_app/components/product_preview_card.dart';
 
 import '../components/custom_segmented_button.dart';
@@ -22,6 +23,7 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   String user = 'David';
   bool isLocationModalVisible = false;
+  bool isLocationChanged = false;
   String selectedLocation = 'SHED';
   String selectedSection = 'A';
   String selectedFloor = '1';
@@ -94,6 +96,86 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
+  // Show an alert dialog when the user tries to change location
+  void showLocationChangeAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Changing your location will empty your cart.',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'Do you want to continue?',
+            style: TextStyle(
+              fontSize: 14,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.all(20),
+          actionsPadding:
+              const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Handle cancel action
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                backgroundColor: const Color(0xFFF0F0F0),
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // Handle continue action
+                Navigator.of(context).pop();
+                toggleLocationModal(); // Open the location modal
+              },
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                backgroundColor: Color(0xFF111111),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              child: const Text(
+                'Continue',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -120,7 +202,7 @@ class _HomepageState extends State<Homepage> {
                   IconButton(
                     icon: const Icon(
                       Icons.shopping_cart_outlined,
-                      color: Color(0xFF312F2F),
+                      color: Color(0xFF111111),
                       size: 25,
                     ),
                     onPressed: () {
@@ -162,8 +244,16 @@ class _HomepageState extends State<Homepage> {
               ),
               IconButton(
                 icon: const Icon(
+                  Icons.receipt_long_outlined,
+                  color: Color(0xFF111111),
+                  size: 25,
+                ),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(
                   Icons.settings_outlined,
-                  color: Color(0xFF312F2F),
+                  color: Color(0xFF111111),
                   size: 25,
                 ),
                 onPressed: () {},
@@ -177,7 +267,17 @@ class _HomepageState extends State<Homepage> {
                 child: Column(
                   children: [
                     GestureDetector(
-                      onTap: toggleLocationModal,
+                      onTap: () {
+                        // Check if cart is not empty before showing alert
+                        _cartFuture.then((cart) {
+                          if (cart != null && cart.items.isNotEmpty) {
+                            showLocationChangeAlert(context);
+                          } else {
+                            // If cart is empty, proceed with normal location modal toggle
+                            toggleLocationModal();
+                          }
+                        });
+                      },
                       child: Row(
                         children: [
                           Icon(
@@ -206,6 +306,7 @@ class _HomepageState extends State<Homepage> {
                         ],
                       ),
                     ),
+                    SizedBox(height: 10),
                     Container(
                       decoration: BoxDecoration(
                         color: const Color.fromRGBO(248, 248, 248,
@@ -226,10 +327,6 @@ class _HomepageState extends State<Homepage> {
                                 border: InputBorder.none,
                               ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.tune_outlined),
-                            onPressed: () {},
                           ),
                         ],
                       ),
@@ -270,8 +367,8 @@ class _HomepageState extends State<Homepage> {
                                           begin: Alignment.centerLeft,
                                           end: Alignment.centerRight,
                                           colors: [
-                                            Color.fromRGBO(49, 47, 47, 1),
-                                            Color.fromRGBO(82, 113, 255, 1),
+                                            Color.fromRGBO(76, 145, 255, 1),
+                                            Color.fromRGBO(255, 64, 78, 1),
                                           ],
                                         ).createShader(bounds);
                                       },
@@ -302,48 +399,72 @@ class _HomepageState extends State<Homepage> {
                           ),
                           const SizedBox(height: 15),
                           SizedBox(
-                            height: 128,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: const [
-                                SizedBox(
-                                  width: 20,
-                                ),
-                                // Element 1
-                                CategoryItem(
-                                  image: 'assets/images/categories/writing.png',
-                                  title: 'Writing Supplies',
-                                ),
-                                SizedBox(width: 16), // Spacing between items
+                            height: 130,
+                            child: SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    // Element 1
+                                    CategoryItem(
+                                      image: SvgPicture.asset(
+                                        'assets/images/categories/writing.svg',
+                                        width: 40,
+                                        height: 40,
+                                      ),
+                                      title: 'Writing Supplies',
+                                    ),
+                                    const SizedBox(width: 10),
+                                    // Spacing between items
 
-                                // Element 2
-                                CategoryItem(
-                                  image: 'assets/images/categories/paper.png',
-                                  title: 'Paper Products',
-                                ),
-                                SizedBox(width: 16),
+                                    // Element 2
+                                    CategoryItem(
+                                      image: SvgPicture.asset(
+                                        'assets/images/categories/paper.svg',
+                                        width: 40,
+                                        height: 40,
+                                      ),
+                                      title: 'Paper Products',
+                                    ),
+                                    const SizedBox(width: 10),
 
-                                // Element 3
-                                CategoryItem(
-                                  image: 'assets/images/categories/craft.png',
-                                  title: 'Art and Craft',
-                                ),
-                                SizedBox(width: 16),
+                                    // Element 3
+                                    CategoryItem(
+                                      image: SvgPicture.asset(
+                                        'assets/images/categories/craft.svg',
+                                        width: 50,
+                                        height: 50,
+                                      ),
+                                      title: 'Art and Craft',
+                                    ),
+                                    const SizedBox(width: 10),
 
-                                // Element 4
-                                CategoryItem(
-                                  image: 'assets/images/categories/gear.png',
-                                  title: 'Tech Gear',
-                                ),
-                                SizedBox(width: 16),
+                                    // Element 4
+                                    CategoryItem(
+                                      image: SvgPicture.asset(
+                                        'assets/images/categories/gear.svg',
+                                        width: 40,
+                                        height: 32,
+                                      ),
+                                      title: 'Office Supplies',
+                                    ),
+                                    const SizedBox(width: 10),
 
-                                // Element 5
-                                CategoryItem(
-                                  image: 'assets/images/categories/store.png',
-                                  title: 'Store & Sort',
-                                ),
-                              ],
-                            ),
+                                    // Element 5
+                                    CategoryItem(
+                                      image: SvgPicture.asset(
+                                        'assets/images/categories/store.svg',
+                                        width: 40,
+                                        height: 40,
+                                      ),
+                                      title: 'Store and Organizer',
+                                    ),
+                                    const SizedBox(width: 20),
+                                  ],
+                                )),
                           ),
                           Padding(
                             padding: EdgeInsets.fromLTRB(20, 37, 20, 0),
@@ -356,13 +477,13 @@ class _HomepageState extends State<Homepage> {
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,
                                       colors: [
-                                        Color.fromRGBO(49, 47, 47, 1),
-                                        Color.fromRGBO(82, 113, 255, 1),
+                                        Color.fromRGBO(76, 145, 255, 1),
+                                        Color.fromRGBO(255, 64, 78, 1),
                                       ],
                                     ).createShader(bounds);
                                   },
                                   child: Text(
-                                    'Recommended for You',
+                                    'Recommended for you',
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w600,
@@ -372,7 +493,7 @@ class _HomepageState extends State<Homepage> {
                                 )),
                           ),
                           Padding(
-                              padding: EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 10),
                               child: FutureBuilder<List<Product>>(
                                 future: _productsFuture,
@@ -439,10 +560,9 @@ class _HomepageState extends State<Homepage> {
                                             crossAxisCount: 2,
                                             crossAxisSpacing: 15.0,
                                             mainAxisSpacing: 15.0,
-                                            childAspectRatio: 150 / 219),
+                                            childAspectRatio: 150 / 240),
                                     itemBuilder: (context, index) {
-                                      final product = snapshot
-                                          .data![index];
+                                      final product = snapshot.data![index];
                                       return ProductPreviewCard(
                                         onTap: () {
                                           Navigator.push(
@@ -450,8 +570,7 @@ class _HomepageState extends State<Homepage> {
                                             MaterialPageRoute(
                                                 builder: (context) =>
                                                     ProductDetailPage(
-                                                        productId:
-                                                            product.id)),
+                                                        productId: product.id)),
                                           ).then((_) => _loadCart());
                                         },
                                         product: product,
@@ -461,7 +580,8 @@ class _HomepageState extends State<Homepage> {
                                     },
                                   );
                                 },
-                              )),
+                            )
+                          ),
                         ],
                       ),
                     ),
@@ -485,12 +605,13 @@ class _HomepageState extends State<Homepage> {
                 top: AppBar().preferredSize.height +
                     MediaQuery.of(context).padding.top +
                     30,
-                left: 0,
-                right: 0,
+                left: 20,
+                right: 20,
                 child: Container(
                   height: 241,
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(211, 215, 222, 1),
+                    // color: Color.fromRGBO(211, 215, 222, 1),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Padding(
@@ -613,7 +734,7 @@ class _HomepageState extends State<Homepage> {
 }
 
 class CategoryItem extends StatelessWidget {
-  final String image;
+  final SvgPicture image;
   final String title;
 
   const CategoryItem({
@@ -624,35 +745,35 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 74,
-      height: 128,
-      decoration: BoxDecoration(
-        color: const Color.fromRGBO(213, 220, 250, 0.34),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
+    return SizedBox(
+      width: 78,
+      height: 130,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 78,
+            height: 78,
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(image),
-                fit: BoxFit.cover,
-              ),
+              color: const Color.fromRGBO(255, 238, 240, 1),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  child: image,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),
-
-          // Title
           Text(
             title,
             style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color.fromRGBO(51, 51, 51, 1)),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color.fromRGBO(51, 51, 51, 1),
+            ),
             textAlign: TextAlign.center,
           ),
         ],

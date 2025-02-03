@@ -30,7 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  flutter_svg: ^2.0.0+1
+  like_button: ^2.0.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -79,8 +80,8 @@ flutter:
     - assets/images/similar1.png
     - assets/images/pen.png
     - assets/images/mesh-gradient.png
-    - assets/images/categories/craft.png
-    - assets/images/categories/gear.png
-    - assets/images/categories/paper.png
-    - assets/images/categories/store.png
-    - assets/images/categories/writing.png
+    - assets/images/categories/craft.svg
+    - assets/images/categories/gear.svg
+    - assets/images/categories/paper.svg
+    - assets/images/categories/store.svg
+    - assets/images/categories/writing.svg

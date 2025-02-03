@@ -6,6 +6,7 @@ import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
+import 'package:like_button/like_button.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
@@ -78,11 +79,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     }
   }
 
-  Future<void> _toggleFavorite() async {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-    await asyncPrefs.setBool('favorite_${widget.productId}', isFavorite);
+  // Future<void> _toggleFavorite() async {
+  //   setState(() {
+  //     isFavorite = !isFavorite;
+  //   });
+  //   await asyncPrefs.setBool('favorite_${widget.productId}', isFavorite);
+  // }
+
+  Future<bool> onLikeButtonTapped(bool isLiked) async {
+    try {
+      // Toggle the favorite status
+      setState(() {
+        isFavorite = !isLiked;
+      });
+
+      // Save the new favorite status to SharedPreferences
+      await asyncPrefs.setBool('favorite_${widget.productId}', isFavorite);
+
+      // Return the new liked status
+      return isFavorite;
+    } catch (e) {
+      // If there's an error, return the original liked status
+      print('Error toggling favorite: $e');
+      return isLiked;
+    }
   }
 
   void updateQuantity(bool increase) {
@@ -117,13 +137,36 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: Color(0xFFF32357),
+          Padding(
+            padding: EdgeInsets.only(right: 15),
+            child: LikeButton(
+              isLiked: isFavorite,
+              onTap: onLikeButtonTapped,
+              size: 30,
+              circleColor: CircleColor(
+                start: Color(0xFFFF404E),
+                end: Color(0xFFFF404E),
+              ),
+              bubblesColor: BubblesColor(
+                dotPrimaryColor: Color(0xFF4C91FF),
+                dotSecondaryColor: Color(0xFFFF404E),
+              ),
+              likeBuilder: (isLiked) {
+                return Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: Color(0xFFFF404E),
+                  size: 30,
+                );
+              },
             ),
-            onPressed: _toggleFavorite,
-          ),
+          )
+          // IconButton(
+          //   icon: Icon(
+          //     isFavorite ? Icons.favorite : Icons.favorite_border,
+          //     color: Color(0xFFFF404E),
+          //   ),
+          //   onPressed: _toggleFavorite,
+          // ),
         ],
       ),
       body: SafeArea(
@@ -134,7 +177,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFF5271FF),
+                  color: Color(0xFF4C91FF),
                 ),
               );
             }
@@ -143,7 +186,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Text(
                   snapshot.error.toString(),
                   style: TextStyle(
-                    color: Color(0xFFF32357),
+                    color: Color(0xFFFF404E),
                     fontSize: 14,
                   ),
                 ),
@@ -154,7 +197,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Text(
                   'Product not found',
                   style: TextStyle(
-                    color: Color(0xFFF32357),
+                    color: Color(0xFFFF404E),
                     fontSize: 14,
                   ),
                 ),
@@ -166,13 +209,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 0;
 
             Map<ProductOption, List<ProductOptionValue>> options = product.variants.fold<Map<ProductOption, List<ProductOptionValue>>>({}, (map, variant) {
-              variant.options.forEach((optionValue) {
+              for (var optionValue in variant.options) {
                 final option = product.options.firstWhere((o) => o.id == optionValue.optionId);
                 map.putIfAbsent(option, () => []);
                 if (!map[option]!.any((v) => v.id == optionValue.id)) {
                   map[option]!.add(optionValue);
                 }
-              });
+              }
               return map;
             });
 
@@ -309,7 +352,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     child: Text(
                                       'Maximum quantity available in stock reached',
                                       style: TextStyle(
-                                        color: Color(0xFFF32357),
+                                        color: Color(0xFFFF404E),
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -333,7 +376,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         height: 12,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Color(0xFF5271FF),
+                                          color: Color(0xFF4C91FF),
                                         ),
                                       ),
                                       SizedBox(width: 3),
@@ -342,7 +385,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
-                                          color: Color(0xFF5271FF),
+                                          color: Color(0xFF4C91FF),
                                         ),
                                       ),
                                     ],
@@ -351,7 +394,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 SizedBox(height: 3),
                                 Row(
                                   children: [
-                                    Icon(Icons.location_on_outlined,
+                                    Icon(Icons.location_city_rounded,
                                         size: 20, color: Color(0xFF312F2F)),
                                     SizedBox(width: 4),
                                     Text(
@@ -377,14 +420,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           padding: EdgeInsets.symmetric(
                                               horizontal: 12, vertical: 5),
                                           decoration: BoxDecoration(
-                                            color: Color(0xFFE7ECFF),
+                                            color: Color.fromRGBO(76, 145, 255, 0.1),
                                             borderRadius:
                                                 BorderRadius.circular(16),
                                           ),
                                           child: Text(
                                             category.name,
                                             style: TextStyle(
-                                              color: Color(0xFF5271FF),
+                                              color: Color(0xFF4C91FF),
                                               fontSize: 12,
                                             ),
                                           ),
@@ -479,12 +522,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         setState(() {
                           _isAddingToCart = true;
                         });
-                        
+
                         try {
                           final cartId = await _cartService.getOrCreateCartId();
                           await _cartService.addLineItem(
                               cartId, selectedVariant!.id, quantity);
-                              
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Added to cart'),
@@ -557,7 +600,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       width: 37, // Keep the reduced size of the container
       height: 37, // Keep the reduced size of the container
       decoration: BoxDecoration(
-        color: Color(0xFFFF404E),
+        color: Color(0xFF111111),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -672,8 +715,8 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color.fromRGBO(49, 47, 47, 1),
-                    Color.fromRGBO(75, 99, 211, 1),
+                    Color.fromRGBO(76, 145, 255, 1),
+                    Color.fromRGBO(255, 64, 78, 1),
                   ],
                 ).createShader(bounds);
               },
@@ -697,7 +740,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFF5271FF),
+                      color: Color(0xFF4C91FF),
                     ),
                   );
                 }
@@ -707,7 +750,7 @@ class SimilarItemsWidgetState extends State<SimilarItemsWidget> {
                     child: Text(
                       'Error loading products',
                       style: TextStyle(
-                        color: Color(0xFFF32357),
+                        color: Color(0xFFFF404E),
                         fontSize: 14,
                       ),
                     ),

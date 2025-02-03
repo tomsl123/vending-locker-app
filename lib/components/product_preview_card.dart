@@ -65,7 +65,8 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
     return GestureDetector(
       onTap: widget.onTap,
       child: SizedBox(
-        width: 150, // fixed width for each item
+        width: 150,
+        height: 240,
         child: Padding(
           padding: EdgeInsets.all(6),
           child: Column(
@@ -113,8 +114,8 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                           child: Center(
                             child: Icon(
                               _isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: Color(0xFFF32357), // Heart color
-                              size: 19, // Icon size
+                              color: Color(0xFFFF404E), // Heart color
+                              size: 23, // Icon size
                             ),
                           ),
                         ),
@@ -125,11 +126,10 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                       bottom: 8,
                       right: 8,
                       child: Container(
-                        width: 28, // Circle width
-                        height: 28, // Circle height
+                        padding: EdgeInsets.all(4), // Space inside the circle
                         decoration: BoxDecoration(
                           color: Colors.white, // Background color
-                          borderRadius: BorderRadius.circular(8), // Rounded corners
+                          shape: BoxShape.circle, // Circular shape
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.08), // Subtle shadow
@@ -138,45 +138,45 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.add, // "Add" icon for the cart
-                          color: Color(0xFF5271FF), // Icon color (blue)
-                          size: 20, // Icon size
-                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.add, // "Add" icon for the cart
+                            color: Color(0xFF4C91FF), // Icon color (blue)
+                            size: 23, // Icon size
+                          ),
+                        )
                       ),
                     ),
                   ]
                 )
               ),
               // Product name and price
-              SizedBox(height: 4),
+              SizedBox(height: 8),
               Text(
                 product.title,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 12),
                 maxLines: 2, // limit text to 2 lines
                 overflow: TextOverflow.ellipsis, // show ... if text overflows
               ),
-              SizedBox(height: 4),
               Text(
                 '€${product.variants.first.calculatedPrice?.calculatedAmount}',
-                style: TextStyle(fontSize: 12, color: Color(0xFF312F2F)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111111)),
               ),
               if(widget.showLocation)
-                SizedBox(height: 6),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.place,
-                      size: 14,
-                      color: Color.fromRGBO(49, 47, 47, 1),
+                      Icons.location_city_rounded,
+                      size: 16,
+                      color: Color(0xFF111111),
                     ),
                     SizedBox(width: 4),
                     Text(
                       quantitiesByLocation.entries.map((entry) => "${entry.key}: ${entry.value}").join(", "),
                       style: TextStyle(
-                        fontSize: 10,
-                        color: Color.fromRGBO(49, 47, 47, 1),
+                        fontSize: 11,
+                        color: Color(0xFF111111),
                       ),
                     ),
                   ],
@@ -186,17 +186,17 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 1),
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(231, 236, 255, 1),
+                    color: Color.fromRGBO(76, 145, 255, 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     product.categories.first.name,
                     style: TextStyle(
-                      color: Color.fromRGBO(82, 113, 255, 1),
+                      color: Color.fromRGBO(76, 145, 255, 1),
                       fontSize: 9
                     ),
                   ),
-                )
+                ),
             ],
           ),
         ),
