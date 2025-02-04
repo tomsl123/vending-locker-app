@@ -360,27 +360,14 @@ class _HomepageState extends State<Homepage> {
                                       MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    ShaderMask(
-                                      // Adds gradient to text
-                                      shaderCallback: (Rect bounds) {
-                                        return LinearGradient(
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                          colors: [
-                                            Color.fromRGBO(76, 145, 255, 1),
-                                            Color.fromRGBO(255, 64, 78, 1),
-                                          ],
-                                        ).createShader(bounds);
-                                      },
-                                      child: Text(
+                                    Text(
                                         'Category',
                                         style: TextStyle(
                                           fontSize: 22,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.white,
+                                          color: Color(0xFF111111),
                                         ),
                                       ),
-                                    ),
                                     GestureDetector(
                                       onTap: () {},
                                       child: const Text(
@@ -506,7 +493,7 @@ class _HomepageState extends State<Homepage> {
                                         children: [
                                           SizedBox(height: 50),
                                           CircularProgressIndicator(
-                                            color: Color(0xFF5271FF),
+                                            color: Color(0xFF4C91FF),
                                           ),
                                         ],
                                       ),
