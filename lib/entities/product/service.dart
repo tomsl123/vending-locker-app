@@ -64,4 +64,10 @@ class ProductService {
       throw Exception('Failed to fetch product');
     }
   }
+
+  ProductVariant? getProductVariantFromProductByVariantId(Product product, String variantId) {
+    var matchingVariants = product.variants.where((variant) => variant.id == variantId);
+    return matchingVariants.isNotEmpty ? matchingVariants.first : null;
+  }
+
 }

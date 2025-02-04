@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vending_locker_app/Screens/order_confirmation_page.dart';
+import 'package:vending_locker_app/constants.dart';
+import 'package:vending_locker_app/entities/product/service.dart';
 
 import '../entities/cart/model.dart';
 import '../entities/cart/service.dart';
@@ -13,25 +15,25 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  String selectedLocation = 'SHED';
-  String selectedSection = 'A';
-  String selectedFloor = '1';
+  String? location;
 
   final CartService _cartService = CartService();
-  late Future<String> _pickupLocationFuture;
+  final ProductService _productService = ProductService();
+  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   late Future<Cart?> _cartFuture;
 
   @override
   void initState() {
     super.initState();
     _cartFuture = Future.value(null);
-    _pickupLocationFuture = _loadSavedLocation();
+    _loadSavedLocation().then((savedLocation) {
+      location = savedLocation;
+    });
     _loadCart();
   }
 
   Future<void> _loadCart() async {
     String cartId = await _cartService.getOrCreateCartId();
-    print(cartId);
     setState(() {
       _cartFuture = _cartService.getById(cartId);
     });
@@ -46,11 +48,23 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<String> _loadSavedLocation() async {
-    final prefs = await SharedPreferences.getInstance();
-    selectedLocation = prefs.getString('selectedLocation') ?? 'SHED';
-    selectedSection = prefs.getString('selectedSection') ?? 'A';
-    selectedFloor = prefs.getString('selectedFloor') ?? '1';
-    return '$selectedLocation $selectedSection$selectedFloor';
+    final savedLocation = await asyncPrefs.getString('selectedLocation');
+    final savedSection = await asyncPrefs.getString('selectedSection');
+    final savedFloor = await asyncPrefs.getString('selectedFloor');
+    return '$savedLocation $savedSection$savedFloor';
+  }
+
+  bool isQuantityButtonActive(CartLineItem item, bool increase) {
+    if (increase) {
+      var locationId = Constants.locationIds.entries
+          .firstWhere((e) => e.value == location, orElse: () => MapEntry('', '')).key;
+      int? maxQuantity = _productService
+          .getProductVariantFromProductByVariantId(item.product, item.variantId)
+          ?.getQuantitiesByLocation()[locationId];
+      return maxQuantity != null && item.quantity < maxQuantity;
+    } else {
+      return item.quantity > 1;
+    }
   }
 
   @override
@@ -90,6 +104,57 @@ class _CartPageState extends State<CartPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 26),
+            FutureBuilder(
+              future: _cartFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 21),
+                      _buildBox("Location: $location"),
+                      const SizedBox(width: 13),
+                      _buildBox("Loading..."),
+                    ],
+                  );
+                } else if (snapshot.hasError) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 21),
+                      _buildBox("Location: $location"),
+                      const SizedBox(width: 13),
+                      _buildBox("Error loading"),
+                    ],
+                  );
+                } else if (!snapshot.hasData) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 21),
+                      _buildBox("Location: $location"),
+                      const SizedBox(width: 13),
+                      _buildBox("Items: None"),
+                    ],
+                  );
+                } else {
+                  final cart = snapshot.data;
+                  final itemCount = cart?.items.fold(0, (sum, item) => sum + item.quantity) ?? 0;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 21),
+                      _buildBox("Location: $location"),
+                      const SizedBox(width: 13),
+                      _buildBox("Items: $itemCount"),
+                    ],
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 26),
             FutureBuilder<Cart?>(
               future: _cartFuture,
               builder: (context, snapshot) {
@@ -112,6 +177,9 @@ class _CartPageState extends State<CartPage> {
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
+                      final increaseActive = isQuantityButtonActive(item, true);
+                      final decreaseActive = isQuantityButtonActive(item, false);
+
                       return Column(
                         children: [
                           Dismissible(
@@ -244,20 +312,21 @@ class _CartPageState extends State<CartPage> {
                                         height: 25,
                                         child: IconButton(
                                           style: IconButton.styleFrom(
-                                            backgroundColor: Colors.white,
+                                            backgroundColor: Color.fromRGBO(17, 17, 17, 1),
+                                            disabledBackgroundColor: Color(0xFFADADAD),
                                             padding: EdgeInsets.zero,
                                           ),
                                           icon: const Icon(
                                             Icons.add,
                                             size: 16,
-                                            color: Colors.black,
+                                            color: Colors.white,
                                           ),
-                                          onPressed: () {
+                                          onPressed: increaseActive ? () {
                                             setState(() {
                                               _updateLineItemQuantity(cart.id,
                                                   item.id, item.quantity + 1);
                                             });
-                                          },
+                                          } : null,
                                         ),
                                       ),
                                       // Quantity display
@@ -278,22 +347,23 @@ class _CartPageState extends State<CartPage> {
                                         height: 25,
                                         child: IconButton(
                                           style: IconButton.styleFrom(
-                                            backgroundColor: Colors.white,
+                                            backgroundColor: Color.fromRGBO(17, 17, 17, 1),
+                                            disabledBackgroundColor: Color(0xFFADADAD),
                                             padding: EdgeInsets.zero,
                                           ),
                                           icon: const Icon(
                                             Icons.remove,
                                             size: 16,
-                                            color: Colors.black,
+                                            color: Colors.white,
                                           ),
-                                          onPressed: () {
+                                          onPressed: decreaseActive ? () {
                                             if (item.quantity > 1) {
                                               setState(() {
                                                 _updateLineItemQuantity(cart.id,
                                                     item.id, item.quantity - 1);
                                               });
                                             }
-                                          },
+                                          } : null,
                                         ),
                                       ),
                                     ],
@@ -428,20 +498,25 @@ class _CartPageState extends State<CartPage> {
       ),
     );
   }
-}
 
-class CartItem {
-  final String name;
-  final double price;
-  final String image;
-  int quantity;
-  final String? warning;
-
-  CartItem({
-    required this.name,
-    required this.price,
-    required this.image,
-    required this.quantity,
-    this.warning,
-  });
+  Widget _buildBox(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 40,
+      decoration: BoxDecoration(
+        color: Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Color(0xFF4C91FF),
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
 }

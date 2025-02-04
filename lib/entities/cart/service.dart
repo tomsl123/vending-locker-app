@@ -141,4 +141,9 @@ class CartService {
       throw Exception('Failed to fetch cart');
     }
   }
+
+  CartLineItem? getCartLineItemByVariantId(List<CartLineItem> items, String? variantId) {
+    var matchingItems = items.where((item) => item.variantId == variantId);
+    return matchingItems.isNotEmpty ? matchingItems.first : null;
+  }
 }

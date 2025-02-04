@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vending_locker_app/components/variant_selector_button.dart';
 import 'package:vending_locker_app/entities/cart/service.dart';
+import '../entities/cart/model.dart';
 import '../entities/product/model.dart';
 import '../entities/product/service.dart';
 import '/components/product_preview_card.dart';
@@ -19,8 +20,11 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   int currentImageIndex = 0;
-  int quantity = 1;
+  int quantity = 0;
   bool showMaxQuantityWarning = false;
+  bool increaseQuantityActive = false;
+  bool decreaseQuantityActive = false;
+
   bool isFavorite = false;
   String selectedLocation = 'SHED';
   String selectedSection = 'A';
@@ -35,6 +39,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   final CartService _cartService = CartService();
   late Future<(Product, void)> _combinedFuture;
   ProductVariant? selectedVariant;
+  Cart? cart;
   bool _isAddingToCart = false;
 
   @override
@@ -47,9 +52,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     ]).then((results) {
       final product = results[0] as Product;
       selectedVariant = product.variants.first;
+
+      _loadCart().then((initializedCart) {
+        setState(() {
+          cart = initializedCart;
+          quantity = _cartService.getCartLineItemByVariantId(initializedCart.items, selectedVariant?.id)?.quantity ?? 1;
+          updateQuantityButtons();
+        });
+      });
+
       return (product, null);
     });
     _loadFavoriteStatus();
+  }
+
+  Future<Cart> _loadCart() async {
+    String cartId = await _cartService.getOrCreateCartId();
+    return _cartService.getById(cartId);
   }
 
   Future<void> _loadSavedLocation() async {
@@ -107,21 +126,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   void updateQuantity(bool increase) {
     setState(() {
-      if (increase) {
-        if (quantity <
-            (selectedVariant?.getQuantitiesByLocation()[selectedLocationId] ??
-                0)) {
-          quantity++;
-          showMaxQuantityWarning = false;
-        } else {
-          showMaxQuantityWarning = true;
-        }
-      } else {
-        if (quantity > 1) {
-          quantity--;
-          showMaxQuantityWarning = false;
-        }
+      if (increase && increaseQuantityActive) {
+        quantity++;
       }
+      else if (decreaseQuantityActive) {
+        quantity--;
+      }
+    });
+    updateQuantityButtons();
+  }
+
+  void updateQuantityButtons() {
+    setState(() {
+      increaseQuantityActive = quantity <
+          (selectedVariant?.getQuantitiesByLocation()[selectedLocationId] ?? 0);
+      decreaseQuantityActive = quantity > 1;
     });
   }
 
@@ -327,7 +346,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           _buildQuantityButton(
                                               icon: Icons.remove,
                                               onPressed: () =>
-                                                  updateQuantity(false)),
+                                                  updateQuantity(false),
+                                              active:  decreaseQuantityActive
+                                          ),
                                           SizedBox(width: 10),
                                           Text(
                                             '$quantity',
@@ -340,7 +361,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                           _buildQuantityButton(
                                               icon: Icons.add,
                                               onPressed: () =>
-                                                  updateQuantity(true)),
+                                                  updateQuantity(true),
+                                              active:  increaseQuantityActive
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -482,7 +505,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                                       setState(() {
                                                         selectedVariant =
                                                             variant;
-                                                        quantity = 1;
+                                                        quantity = _cartService.getCartLineItemByVariantId(cart!.items, selectedVariant?.id)?.quantity ?? 1;
+                                                        updateQuantityButtons();
                                                       });
                                                     },
                                                     isDisabled: !isInStock,
@@ -518,19 +542,38 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   bottom: 46,
                   child: Center(
                     child: ElevatedButton(
-                      onPressed: _isAddingToCart ? null : () async {
+                      onPressed: _isAddingToCart || cart == null ? null : () async {
                         setState(() {
                           _isAddingToCart = true;
                         });
 
+                        CartLineItem? cartLineItem = _cartService.getCartLineItemByVariantId(cart!.items, selectedVariant?.id);
                         try {
-                          final cartId = await _cartService.getOrCreateCartId();
-                          await _cartService.addLineItem(
-                              cartId, selectedVariant!.id, quantity);
+                          if (cartLineItem != null) {
+                            await _cartService.setLineItemQuantity(
+                                cart!.id, cartLineItem.id, quantity);
+                          }
+                          else {
+                            await _cartService.addLineItem(
+                                cart!.id, selectedVariant!.id, quantity);
+                            cart = await _loadCart();
+                          }
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Added to cart'),
+                              content: cartLineItem != null
+                                  ? Text('Item quantity edited successfully!')
+                                  : Text('Successfully added to cart!'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } catch (e) {
+                          print(e);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: cartLineItem != null
+                                  ? Text('Failed to edit item quantity. Try again later.')
+                                  : Text('Failed to add item to cart. Try again later.'),
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -551,7 +594,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: _isAddingToCart ? Color(0xFF666666) : Color(0xFF111111),
+                          color: _isAddingToCart || cart == null ? Color(0xFF666666) : Color(0xFF111111),
                           boxShadow: const [
                             BoxShadow(
                               offset: Offset(0, 4),
@@ -561,7 +604,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ],
                         ),
                         child: Center(
-                          child: _isAddingToCart
+                          child: _isAddingToCart || cart == null
                               ? SizedBox(
                                   width: 24,
                                   height: 24,
@@ -571,7 +614,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   ),
                                 )
                               : Text(
-                                  'Add to Cart',
+                                cart == null ||
+                                    _cartService.getCartLineItemByVariantId(cart!.items, selectedVariant?.id) == null
+                                ? 'Add to Cart'
+                                : 'Edit Quantity',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -595,12 +641,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildQuantityButton({
     required IconData icon,
     required VoidCallback onPressed,
+    required bool active
   }) {
     return Container(
       width: 37, // Keep the reduced size of the container
       height: 37, // Keep the reduced size of the container
       decoration: BoxDecoration(
-        color: Color(0xFF111111),
+        color: active ? Color(0xFF111111) : Color(0xFFADADAD),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -610,7 +657,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             weight: 900,
             size: 22,
           ),
-          onPressed: onPressed,
+          onPressed: active ? onPressed : null,
           color: Colors.white,
         ),
       ),
