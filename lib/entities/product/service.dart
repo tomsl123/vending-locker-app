@@ -23,6 +23,41 @@ class ProductService {
     }
   }
 
+  Future<List<Product>> searchProducts(String query, String locationId) async {
+    try {
+      // Fetch products from Medusa with title search and location filtering
+      final response = await http.get(
+        Uri.parse(
+          '${Constants.medusaApiUrl}/store/products?'
+              'region_id=${Constants.berlinCampusRegionId}'
+              '&q=${Uri.encodeQueryComponent(query)}'
+              '&fields=*categories,*variants.inventory_items.inventory.location_levels,+variants.inventory_quantity',
+        ),
+        headers: {'x-publishable-api-key': Constants.medusaApiKey},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> products = responseData['products'];
+        final allProducts = products.map((p) => Product.fromJson(p)).toList();
+
+        // Filter by location locally (as your backend might not support it)
+        return allProducts.where((product) {
+          return product.variants.any((variant) {
+            final quantities = variant.getQuantitiesByLocation();
+            return quantities.containsKey(locationId) && quantities[locationId]! > 0;
+          });
+        }).toList();
+      } else {
+        throw Exception('Failed to fetch search results');
+      }
+    } catch (e) {
+      log('Search error: $e');
+      throw Exception('Search failed');
+    }
+  }
+
+
   Future<List<Product>> listByLocation(String locationId) async {
     try {
       // Not ideal, but filtering by location id via URL param would require endpoint adjustment

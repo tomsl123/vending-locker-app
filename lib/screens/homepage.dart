@@ -12,6 +12,7 @@ import 'cart_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'item_detail_page.dart';
+import 'search_result_page.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -37,6 +38,7 @@ class _HomepageState extends State<Homepage> {
   late Future<List<Product>> _productsFuture;
   late Future<Cart?> _cartFuture;
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -174,6 +176,12 @@ class _HomepageState extends State<Homepage> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -318,14 +326,41 @@ class _HomepageState extends State<Homepage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.search),
-                            onPressed: () {},
+                            onPressed: () {
+                              final query = _searchController.text.trim();
+                              if (query.isNotEmpty) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchResultPage(
+                                      searchQuery: query,
+                                      locationId: selectedLocationId,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           ),
-                          const Expanded(
+                          Expanded(
                             child: TextField(
-                              decoration: InputDecoration(
+                              controller: _searchController,
+                              decoration: const InputDecoration(
                                 hintText: 'Search items...',
                                 border: InputBorder.none,
                               ),
+                              onSubmitted: (query) {
+                                if (query.isNotEmpty) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SearchResultPage(
+                                        searchQuery: query,
+                                        locationId: selectedLocationId
+                                      )
+                                    )
+                                  );
+                                }
+                              }
                             ),
                           ),
                         ],
