@@ -399,101 +399,91 @@ class _CartPageState extends State<CartPage> {
             ],
           ),
         ),
-        child: SafeArea(
-          child: Container(
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: const Color(0xFF111111),
-                      boxShadow: const [
-                        BoxShadow(
-                          offset: Offset(0, 4),
-                          blurRadius: 4,
-                          color: Color.fromRGBO(0, 0, 0, 0.15),
+        child: FutureBuilder<Cart?>(
+          future: _cartFuture,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data?.items.isEmpty == true) {
+              return const SizedBox.shrink();
+            }
+
+            return SafeArea(
+              child: Container(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          image: const DecorationImage(
+                            image: AssetImage('assets/images/mesh-gradient.png'),
+                            fit: BoxFit.cover,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              offset: Offset(0, 4),
+                              blurRadius: 4,
+                              color: Color.fromRGBO(0, 0, 0, 0.15),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    OrderConfirmationPage()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(30),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(76, 11, 76, 5),
-                          child: SizedBox(
-                            height: 60,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'Pay Now',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600,
-                                    height: 22 / 20,
-                                    letterSpacing: 0.4,
-                                    color: Colors.white,
-                                  ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        OrderConfirmationPage()),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(30),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(76, 11, 76, 5),
+                              child: SizedBox(
+                                height: 60,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Pay Now',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                        height: 22 / 20,
+                                        letterSpacing: 0.4,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      'in total ${snapshot.data!.total}€',
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        height: 22 / 12,
+                                        letterSpacing: 0.4,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                FutureBuilder<Cart?>(
-                                  future: _cartFuture,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasError) {
-                                      return Center(
-                                          child:
-                                              Text('Error: ${snapshot.error}'));
-                                    } else if (snapshot.hasData) {
-                                      final cart = snapshot.data!;
-                                      final items = cart.items;
-
-                                      if (items.isEmpty) {
-                                        return const Center(
-                                            child: Text('Your cart is empty.'));
-                                      }
-
-                                      return Text(
-                                        'in total ${cart.total}€',
-                                        style: const TextStyle(
-                                          fontFamily: 'Poppins',
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          height: 22 / 12,
-                                          letterSpacing: 0.4,
-                                          color: Colors.white,
-                                        ),
-                                      );
-                                    } else {
-                                      return const Center(
-                                          child: Text('No data found.'));
-                                    }
-                                  },
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
