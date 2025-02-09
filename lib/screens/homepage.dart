@@ -52,7 +52,6 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _loadCart() async {
     String cartId = await _cartService.getOrCreateCartId();
-    print(cartId);
     setState(() {
       _cartFuture = _cartService.getById(cartId);
     });

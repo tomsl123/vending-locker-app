@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vending_locker_app/Screens/order_confirmation_page.dart';
+import 'package:vending_locker_app/screens/order_confirmation_page.dart';
 import 'package:vending_locker_app/constants.dart';
 import 'package:vending_locker_app/entities/product/service.dart';
 
@@ -16,6 +16,7 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   String? location;
+  bool _isProcessingPayment = false;
 
   final CartService _cartService = CartService();
   final ProductService _productService = ProductService();
@@ -433,46 +434,77 @@ class _CartPageState extends State<CartPage> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        OrderConfirmationPage()),
-                              );
+                            onTap: _isProcessingPayment ? null : () async {
+                              setState(() {
+                                _isProcessingPayment = true;
+                              });
+                              try {
+                                final cartId = await CartService().getOrCreateCartId();
+                                final order = await CartService().checkout(cartId);
+                                
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OrderConfirmationPage(
+                                      orderId: order.id.toString(),
+                                      displayId: order.displayId?.toString(),
+                                      status: order.status,
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Checkout failed: ${e.toString()}')),
+                                );
+                              } finally {
+                                setState(() {
+                                  _isProcessingPayment = false;
+                                });
+                              }
                             },
                             borderRadius: BorderRadius.circular(30),
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(76, 11, 76, 5),
                               child: SizedBox(
                                 height: 60,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      'Pay Now',
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        height: 22 / 20,
-                                        letterSpacing: 0.4,
-                                        color: Colors.white,
+                                child: _isProcessingPayment
+                                    ? const Center(
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                    : Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            'Pay Now',
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w600,
+                                              height: 22 / 20,
+                                              letterSpacing: 0.4,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            'in total ${snapshot.data!.total}€',
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              height: 22 / 12,
+                                              letterSpacing: 0.4,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                      'in total ${snapshot.data!.total}€',
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        height: 22 / 12,
-                                        letterSpacing: 0.4,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
                             ),
                           ),

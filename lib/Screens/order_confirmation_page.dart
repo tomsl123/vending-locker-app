@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:vending_locker_app/Screens/homepage.dart';
 
 class OrderConfirmationPage extends StatelessWidget {
+  final String orderId;
+  final String? displayId;
+  final String status;
+
+  const OrderConfirmationPage({super.key, 
+    required this.orderId,
+    this.displayId,
+    required this.status,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,9 +44,9 @@ class OrderConfirmationPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                "Order number #123456",
-                style: TextStyle(
+              Text(
+                "Order number #${displayId ?? orderId}",
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   fontFamily: 'Poppins',
@@ -77,8 +87,8 @@ class OrderConfirmationPage extends StatelessWidget {
                           "Order Status",
                           style: _commonTextStyle,
                         ),
-                        const Text(
-                          "Awaiting pickup",
+                        Text(
+                          status == "pending" ? "Awaiting pickup" : status,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
@@ -237,6 +247,4 @@ class OrderConfirmationPage extends StatelessWidget {
     letterSpacing: 0.4,
     color: Color(0xFF111111),
   );
-
-  const OrderConfirmationPage({super.key});
 }

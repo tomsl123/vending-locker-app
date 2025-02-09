@@ -151,6 +151,7 @@ class Cart {
   final List<CartLineItem> items;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final PaymentCollection? paymentCollection;
 
   Cart({
     required this.id,
@@ -184,6 +185,7 @@ class Cart {
     required this.items,
     this.createdAt,
     this.updatedAt,
+    this.paymentCollection,
   });
 
   factory Cart.fromJson(Map<String, dynamic> json) {
@@ -229,6 +231,327 @@ class Cart {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
+      paymentCollection: json['payment_collection'] != null
+          ? PaymentCollection.fromJson(json['payment_collection'])
+          : null,
+    );
+  }
+}
+
+// Payment Collection related classes
+
+class PaymentCollection {
+  final String id;
+  final String currencyCode;
+  final double amount;
+  final String status;
+  final List<PaymentProvider> paymentProviders;
+  final List<PaymentSession>? paymentSessions;
+  final List<Payment>? payments;
+
+  PaymentCollection({
+    required this.id,
+    required this.currencyCode,
+    required this.amount,
+    required this.status,
+    required this.paymentProviders,
+    this.paymentSessions,
+    this.payments,
+  });
+
+  factory PaymentCollection.fromJson(Map<String, dynamic> json) {
+    return PaymentCollection(
+      id: json['id'],
+      currencyCode: json['currency_code'],
+      amount: (json['amount'] as num).toDouble(),
+      status: json['status'],
+      paymentProviders: (json['payment_providers'] as List<dynamic>)
+          .map((e) => PaymentProvider.fromJson(e))
+          .toList(),
+      paymentSessions: json['payment_sessions'] != null
+          ? (json['payment_sessions'] as List<dynamic>)
+              .map((e) => PaymentSession.fromJson(e))
+              .toList()
+          : null,
+      payments: json['payments'] != null
+          ? (json['payments'] as List<dynamic>)
+              .map((e) => Payment.fromJson(e))
+              .toList()
+          : null,
+    );
+  }
+}
+
+class PaymentProvider {
+  final String id;
+  final double? authorizedAmount;
+  final double? capturedAmount;
+  final double? refundedAmount;
+  final DateTime? completedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final Map<String, dynamic>? metadata;
+
+  PaymentProvider({
+    required this.id,
+    this.authorizedAmount,
+    this.capturedAmount,
+    this.refundedAmount,
+    this.completedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.metadata,
+  });
+
+  factory PaymentProvider.fromJson(Map<String, dynamic> json) {
+    return PaymentProvider(
+      id: json['id'],
+      authorizedAmount: json['authorized_amount'] != null
+          ? (json['authorized_amount'] as num).toDouble()
+          : null,
+      capturedAmount: json['captured_amount'] != null
+          ? (json['captured_amount'] as num).toDouble()
+          : null,
+      refundedAmount: json['refunded_amount'] != null
+          ? (json['refunded_amount'] as num).toDouble()
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'])
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
+      metadata: json['metadata'] != null
+          ? Map<String, dynamic>.from(json['metadata'])
+          : null,
+    );
+  }
+}
+
+class PaymentSession {
+  final String id;
+  final double amount;
+  final String currencyCode;
+  final String providerId;
+  final Map<String, dynamic> data;
+  final String status;
+  final Map<String, dynamic>? context;
+  final DateTime? authorizedAt;
+  final Payment? payment;
+
+  PaymentSession({
+    required this.id,
+    required this.amount,
+    required this.currencyCode,
+    required this.providerId,
+    required this.data,
+    required this.status,
+    this.context,
+    this.authorizedAt,
+    this.payment,
+  });
+
+  factory PaymentSession.fromJson(Map<String, dynamic> json) {
+    return PaymentSession(
+      id: json['id'],
+      amount: (json['amount'] as num).toDouble(),
+      currencyCode: json['currency_code'],
+      providerId: json['provider_id'],
+      data: json['data'] != null
+          ? Map<String, dynamic>.from(json['data'])
+          : {},
+      status: json['status'],
+      context: json['context'] != null
+          ? Map<String, dynamic>.from(json['context'])
+          : null,
+      authorizedAt: json['authorized_at'] != null
+          ? DateTime.parse(json['authorized_at'])
+          : null,
+      payment:
+          json['payment'] != null ? Payment.fromJson(json['payment']) : null,
+    );
+  }
+}
+
+class Payment {
+  final String id;
+  final double amount;
+  final String currencyCode;
+  final String providerId;
+  final double? authorizedAmount;
+  final Map<String, dynamic>? data;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? capturedAt;
+  final DateTime? canceledAt;
+  final double? capturedAmount;
+  final double? refundedAmount;
+  final List<PaymentCapture>? captures;
+  final List<PaymentRefund>? refunds;
+
+  Payment({
+    required this.id,
+    required this.amount,
+    required this.currencyCode,
+    required this.providerId,
+    this.authorizedAmount,
+    this.data,
+    this.createdAt,
+    this.updatedAt,
+    this.capturedAt,
+    this.canceledAt,
+    this.capturedAmount,
+    this.refundedAmount,
+    this.captures,
+    this.refunds,
+  });
+
+  factory Payment.fromJson(Map<String, dynamic> json) {
+    return Payment(
+      id: json['id'],
+      amount: (json['amount'] as num).toDouble(),
+      currencyCode: json['currency_code'],
+      providerId: json['provider_id'],
+      authorizedAmount: json['authorized_amount'] != null
+          ? (json['authorized_amount'] as num).toDouble()
+          : null,
+      data:
+          json['data'] != null ? Map<String, dynamic>.from(json['data']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
+      capturedAt: json['captured_at'] != null
+          ? DateTime.parse(json['captured_at'])
+          : null,
+      canceledAt: json['canceled_at'] != null
+          ? DateTime.parse(json['canceled_at'])
+          : null,
+      capturedAmount: json['captured_amount'] != null
+          ? (json['captured_amount'] as num).toDouble()
+          : null,
+      refundedAmount: json['refunded_amount'] != null
+          ? (json['refunded_amount'] as num).toDouble()
+          : null,
+      captures: json['captures'] != null
+          ? (json['captures'] as List<dynamic>)
+              .map((e) => PaymentCapture.fromJson(e))
+              .toList()
+          : null,
+      refunds: json['refunds'] != null
+          ? (json['refunds'] as List<dynamic>)
+              .map((e) => PaymentRefund.fromJson(e))
+              .toList()
+          : null,
+    );
+  }
+}
+
+class PaymentCapture {
+  final String id;
+  final double amount;
+  final DateTime createdAt;
+  final String? createdBy;
+
+  PaymentCapture({
+    required this.id,
+    required this.amount,
+    required this.createdAt,
+    this.createdBy,
+  });
+
+  factory PaymentCapture.fromJson(Map<String, dynamic> json) {
+    return PaymentCapture(
+      id: json['id'],
+      amount: (json['amount'] as num).toDouble(),
+      createdAt: DateTime.parse(json['created_at']),
+      createdBy: json['payment'] != null ? json['payment']['created_by'] : null,
+    );
+  }
+}
+
+class PaymentRefund {
+  final String id;
+  final double amount;
+  final DateTime createdAt;
+  final PaymentRefundData? payment;
+  final PaymentRefundReason? refundReason;
+
+  PaymentRefund({
+    required this.id,
+    required this.amount,
+    required this.createdAt,
+    this.payment,
+    this.refundReason,
+  });
+
+  factory PaymentRefund.fromJson(Map<String, dynamic> json) {
+    return PaymentRefund(
+      id: json['id'],
+      amount: (json['amount'] as num).toDouble(),
+      createdAt: DateTime.parse(json['created_at']),
+      payment: json['payment'] != null
+          ? PaymentRefundData.fromJson(json['payment'])
+          : null,
+      refundReason: json['refund_reason'] != null
+          ? PaymentRefundReason.fromJson(json['refund_reason'])
+          : null,
+    );
+  }
+}
+
+class PaymentRefundData {
+  final String? refundReasonId;
+  final String? note;
+  final String? createdBy;
+
+  PaymentRefundData({
+    this.refundReasonId,
+    this.note,
+    this.createdBy,
+  });
+
+  factory PaymentRefundData.fromJson(Map<String, dynamic> json) {
+    return PaymentRefundData(
+      refundReasonId: json['refund_reason_id'],
+      note: json['note'],
+      createdBy: json['created_by'],
+    );
+  }
+}
+
+class PaymentRefundReason {
+  final String id;
+  final String label;
+  final Map<String, dynamic> metadata;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? description;
+
+  PaymentRefundReason({
+    required this.id,
+    required this.label,
+    required this.metadata,
+    required this.createdAt,
+    required this.updatedAt,
+    this.description,
+  });
+
+  factory PaymentRefundReason.fromJson(Map<String, dynamic> json) {
+    return PaymentRefundReason(
+      id: json['id'],
+      label: json['label'],
+      metadata: json['metadata'] != null
+          ? Map<String, dynamic>.from(json['metadata'])
+          : {},
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+      description: json['description'],
     );
   }
 }

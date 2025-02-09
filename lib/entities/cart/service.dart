@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import '../order/model.dart';
 import 'model.dart';
 import 'package:http/http.dart' as http;
 import '../../constants.dart';
@@ -93,19 +94,29 @@ class CartService {
 
   Future<Cart> create(
       {String? regionId,
-      Map<String, dynamic>? shippingAddress,
-      Map<String, dynamic>? billingAddress,
       String? email,
       String? currencyCode,
       List<Map<String, dynamic>>? items,
       Map<String, dynamic>? metadata,
       Map<String, dynamic>? additionalData}) async {
+      
+    final Map<String, String> address = {
+      'first_name': 'David',
+      'last_name': 'Linner',
+      'phone': '+4917640000000',
+      'address_1': 'Moritzstrasse 5',
+      'city': 'Berlin',
+      'postal_code': '10100',
+      'country_code': 'de',
+      'province': 'Berlin'
+    };
+
     final Map<String, dynamic> body = {
       'region_id': Constants.berlinCampusRegionId,
       'sales_channel_id': Constants.salesChannelId,
-      if (shippingAddress != null) 'shipping_address': shippingAddress,
-      if (billingAddress != null) 'billing_address': billingAddress,
-      if (email != null) 'email': email,
+      'email': 'slider7259@gmail.com',
+      'shipping_address': address,
+      'billing_address': address,
       if (currencyCode != null) 'currency_code': currencyCode,
       if (items != null) 'items': items,
       if (metadata != null) 'metadata': metadata,
@@ -145,5 +156,72 @@ class CartService {
   CartLineItem? getCartLineItemByVariantId(List<CartLineItem> items, String? variantId) {
     var matchingItems = items.where((item) => item.variantId == variantId);
     return matchingItems.isNotEmpty ? matchingItems.first : null;
+  }
+
+  Future<Order> checkout(String cartId) async {
+    final cart = await getById(cartId);
+    
+    String paymentCollectionId;
+    if (cart.paymentCollection == null) {
+      final response = await http.post(
+        Uri.parse('${Constants.medusaApiUrl}/store/payment-collections'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': Constants.medusaApiKey
+        },
+        body: jsonEncode({
+          'cart_id': cartId
+        })
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create payment collection');
+      }
+
+      final responseData = jsonDecode(response.body);
+      paymentCollectionId = responseData['payment_collection']['id'];
+    } else {
+      paymentCollectionId = cart.paymentCollection!.id;
+    }
+
+    final response = await http.post(
+      Uri.parse('${Constants.medusaApiUrl}/store/payment-collections/$paymentCollectionId/payment-sessions'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-publishable-api-key': Constants.medusaApiKey
+      },
+      body: jsonEncode({
+        'provider_id': 'pp_system_default'
+      })
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to create payment session');
+    }
+
+    final completeResponse = await http.post(
+      Uri.parse('${Constants.medusaApiUrl}/store/carts/$cartId/complete'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-publishable-api-key': Constants.medusaApiKey
+      },
+    );
+
+    if (completeResponse.statusCode != 200) {
+      throw Exception('Failed to complete cart');
+    }
+
+    final responseData = jsonDecode(completeResponse.body);
+    final type = responseData['type'];
+
+    if (type == 'cart') {
+      throw Exception('Failed to create order');
+    } else if (type == 'order') {
+      
+      await asyncPrefs.remove('cart_id');
+      return Order.fromJson(responseData['order']);
+    } else {
+      throw Exception('Unknown response type: $type');
+    }
   }
 }
