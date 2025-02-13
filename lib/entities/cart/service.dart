@@ -99,7 +99,6 @@ class CartService {
       List<Map<String, dynamic>>? items,
       Map<String, dynamic>? metadata,
       Map<String, dynamic>? additionalData}) async {
-      
     final Map<String, String> address = {
       'first_name': 'David',
       'last_name': 'Linner',
@@ -153,26 +152,33 @@ class CartService {
     }
   }
 
-  CartLineItem? getCartLineItemByVariantId(List<CartLineItem> items, String? variantId) {
+  CartLineItem? getCartLineItemByVariantId(
+      List<CartLineItem> items, String? variantId) {
     var matchingItems = items.where((item) => item.variantId == variantId);
     return matchingItems.isNotEmpty ? matchingItems.first : null;
   }
 
   Future<Order> checkout(String cartId) async {
     final cart = await getById(cartId);
-    
+
+    // Set cart customer
+    await http.post(
+        Uri.parse('${Constants.medusaApiUrl}/store/carts/$cartId/customer'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': Constants.medusaApiKey,
+          'Authorization': 'Bearer ${Constants.customerAuthToken}'
+        });
+
     String paymentCollectionId;
     if (cart.paymentCollection == null) {
       final response = await http.post(
-        Uri.parse('${Constants.medusaApiUrl}/store/payment-collections'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-publishable-api-key': Constants.medusaApiKey
-        },
-        body: jsonEncode({
-          'cart_id': cartId
-        })
-      );
+          Uri.parse('${Constants.medusaApiUrl}/store/payment-collections'),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': Constants.medusaApiKey
+          },
+          body: jsonEncode({'cart_id': cartId}));
 
       if (response.statusCode != 200) {
         throw Exception('Failed to create payment collection');
@@ -185,15 +191,13 @@ class CartService {
     }
 
     final response = await http.post(
-      Uri.parse('${Constants.medusaApiUrl}/store/payment-collections/$paymentCollectionId/payment-sessions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-publishable-api-key': Constants.medusaApiKey
-      },
-      body: jsonEncode({
-        'provider_id': 'pp_system_default'
-      })
-    );
+        Uri.parse(
+            '${Constants.medusaApiUrl}/store/payment-collections/$paymentCollectionId/payment-sessions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': Constants.medusaApiKey
+        },
+        body: jsonEncode({'provider_id': 'pp_system_default'}));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to create payment session');
@@ -203,7 +207,8 @@ class CartService {
       Uri.parse('${Constants.medusaApiUrl}/store/carts/$cartId/complete'),
       headers: {
         'Content-Type': 'application/json',
-        'x-publishable-api-key': Constants.medusaApiKey
+        'x-publishable-api-key': Constants.medusaApiKey,
+        'Authorization': 'Bearer ${Constants.customerAuthToken}'
       },
     );
 
@@ -217,7 +222,6 @@ class CartService {
     if (type == 'cart') {
       throw Exception('Failed to create order');
     } else if (type == 'order') {
-      
       await asyncPrefs.remove('cart_id');
       return Order.fromJson(responseData['order']);
     } else {
