@@ -4,6 +4,9 @@ class OrderItem {
   final String? subtitle;
   final String? thumbnail;
   final String variantId;
+  final double price;
+  final int quantity;
+  final String productTitle;
 
   OrderItem({
     required this.id,
@@ -11,6 +14,9 @@ class OrderItem {
     this.subtitle,
     this.thumbnail,
     required this.variantId,
+    required this.price,
+    required this.quantity,
+    required this.productTitle,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -20,6 +26,9 @@ class OrderItem {
       subtitle: json['subtitle'],
       thumbnail: json['thumbnail'],
       variantId: json['variant_id'],
+      price: (json['unit_price'] as num).toDouble(),
+      quantity: json['quantity'] as int,
+      productTitle: json['product_title'],
     );
   }
 }

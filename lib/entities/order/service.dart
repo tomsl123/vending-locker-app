@@ -44,5 +44,23 @@ class OrderService {
       throw Exception('Failed to cancel order. Status: ${response.statusCode}');
     }
   }
+
+  Future<Order> getById(String orderId) async {
+    final response = await http.get(
+      Uri.parse('${Constants.medusaApiUrl}/store/orders/$orderId'),
+      headers: {
+        'x-publishable-api-key': Constants.medusaApiKey,
+        'Authorization': 'Bearer ${Constants.customerAuthToken}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final Map<String, dynamic> order = responseData['order'];
+      return Order.fromJson(order);
+    } else {
+      throw Exception('Failed to fetch order. Status: ${response.statusCode}');
+    }
+  }
 }
 

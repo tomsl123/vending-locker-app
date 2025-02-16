@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vending_locker_app/Screens/homepage.dart';
 import 'package:vending_locker_app/Screens/orders_page.dart';
+import 'package:vending_locker_app/screens/qr_scanner_page.dart';
 
 class OrderConfirmationPage extends StatelessWidget {
   final String orderId;
@@ -161,7 +162,7 @@ class OrderConfirmationPage extends StatelessWidget {
               const SizedBox(height: 35),
               _buildButton("Pick up later", Colors.white, const Color(0xFF242424), OrdersPage(), context),
               const SizedBox(height: 17),
-              _buildButton("Scan QR Code", const Color(0xFF111111), Colors.white, Homepage(), context),
+              _buildButton("Scan QR Code", const Color(0xFF111111), Colors.white, QRScannerPage(orderId: orderId), context),
             ],
           ),
         ),
