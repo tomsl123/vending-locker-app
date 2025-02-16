@@ -11,7 +11,12 @@ class Constants {
     "sloc_01JJKXD885SGMRBXK2QZKMH0KN": "SHED A2",
     "sloc_01JJKXE2T8B1PWHRQF23ED7W7J": "HALL A1"
   };
+  static const Map<String, String> statuses = {
+    'pending': 'Awaiting pickup',
+    'cancelled': 'Cancelled',
+    'completed': 'Completed'
+  };
   // POST /auth/customer/emailpass email=slider7259@gmail.com password=123123123
   static const String customerAuthToken =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3Rvcl9pZCI6ImN1c18wMUpLWkZDMUtDM1pZSkhHWFI1SjdaUEYwNSIsImFjdG9yX3R5cGUiOiJjdXN0b21lciIsImF1dGhfaWRlbnRpdHlfaWQiOiJhdXRoaWRfMDFKS1pGOTRHQzJCUlhSVlAyN1o0N0I4OFAiLCJhcHBfbWV0YWRhdGEiOnsiY3VzdG9tZXJfaWQiOiJjdXNfMDFKS1pGQzFLQzNaWUpIR1hSNUo3WlBGMDUifSwiaWF0IjoxNzM5NDQ0NDI4LCJleHAiOjE3Mzk1MzA4Mjh9.o-vqcGS4Hl1hrrkPMb2ZlCH87aiY1BF-Ev2fQgurhgM';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY3Rvcl9pZCI6ImN1c18wMUpLWkZDMUtDM1pZSkhHWFI1SjdaUEYwNSIsImFjdG9yX3R5cGUiOiJjdXN0b21lciIsImF1dGhfaWRlbnRpdHlfaWQiOiJhdXRoaWRfMDFKS1pGOTRHQzJCUlhSVlAyN1o0N0I4OFAiLCJhcHBfbWV0YWRhdGEiOnsiY3VzdG9tZXJfaWQiOiJjdXNfMDFKS1pGQzFLQzNaWUpIR1hSNUo3WlBGMDUifSwiaWF0IjoxNzM5NjU1NDkxLCJleHAiOjE3Mzk3NDE4OTF9.rRohQf2-gI7EjgWbwQaobop--osfGjeTz-DuLRoB3Ms';
 }

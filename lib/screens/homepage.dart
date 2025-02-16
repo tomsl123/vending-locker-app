@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:vending_locker_app/Screens/orders_page.dart';
 import 'package:vending_locker_app/components/product_preview_card.dart';
+import 'package:vending_locker_app/entities/order/model.dart';
+import 'package:vending_locker_app/entities/order/service.dart';
 
 import '../components/custom_segmented_button.dart';
 import '../constants.dart';
@@ -35,8 +38,10 @@ class _HomepageState extends State<Homepage> {
 
   final ProductService _productService = ProductService();
   final CartService _cartService = CartService();
+  final OrderService _orderService = OrderService();
   late Future<List<Product>> _productsFuture;
   late Future<Cart?> _cartFuture;
+  late Future<List<Order>> _ordersFuture;
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
   final TextEditingController _searchController = TextEditingController();
 
@@ -46,6 +51,7 @@ class _HomepageState extends State<Homepage> {
     // Initialize with default location first
     _productsFuture = Future.value(<Product>[]);
     _cartFuture = Future.value(null);
+    _ordersFuture = _orderService.listByStatuses(['pending']);
     _loadSavedLocation();
     _loadCart();
   }
@@ -151,6 +157,8 @@ class _HomepageState extends State<Homepage> {
               onPressed: () {
                 // Handle continue action
                 Navigator.of(context).pop();
+                asyncPrefs.remove('cart_id');
+                _loadCart();
                 toggleLocationModal(); // Open the location modal
               },
               style: TextButton.styleFrom(
@@ -249,13 +257,50 @@ class _HomepageState extends State<Homepage> {
                   ),
                 ],
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.receipt_long_outlined,
-                  color: Color(0xFF111111),
-                  size: 25,
-                ),
-                onPressed: () {},
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.receipt_long_outlined,
+                      color: Color(0xFF111111),
+                      size: 25,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const OrdersPage()),
+                      );
+                    },
+                  ),
+                  FutureBuilder<List<Order>>(
+                    future: _ordersFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                        return Positioned(
+                          right: 6,
+                          top: 1,
+                          child: Container(
+                            padding: EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFF404E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${snapshot.data!.length}',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return SizedBox.shrink();
+                    },
+                  ),
+                ],
               ),
               IconButton(
                 icon: const Icon(
@@ -730,9 +775,9 @@ class _HomepageState extends State<Homepage> {
                                   CustomSegmentedButton(
                                     options: const ['1', '2', '3', '4', '5'],
                                     selectedOption: selectedFloor,
-                                    onOptionSelected: (value) {
+                                    onOptionSelected: (value) async {
                                       setState(() => selectedFloor = value);
-                                      asyncPrefs.setString(
+                                       asyncPrefs.setString(
                                           'selectedFloor', value);
                                     },
                                     size: SegmentSize.sm,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vending_locker_app/Screens/homepage.dart';
+import 'package:vending_locker_app/Screens/orders_page.dart';
 
 class OrderConfirmationPage extends StatelessWidget {
   final String orderId;
@@ -158,9 +159,9 @@ class OrderConfirmationPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 35),
-              _buildButton("Pick up later", Colors.white, const Color(0xFF242424), context),
+              _buildButton("Pick up later", Colors.white, const Color(0xFF242424), OrdersPage(), context),
               const SizedBox(height: 17),
-              _buildButton("Scan QR Code", const Color(0xFF111111), Colors.white, context),
+              _buildButton("Scan QR Code", const Color(0xFF111111), Colors.white, Homepage(), context),
             ],
           ),
         ),
@@ -206,7 +207,7 @@ class OrderConfirmationPage extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(String text, Color bgColor, Color textColor, context) {
+  Widget _buildButton(String text, Color bgColor, Color textColor, Widget destination, context) {
     return SizedBox(
       width: 242,
       height: 60,
@@ -219,8 +220,7 @@ class OrderConfirmationPage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      Homepage()),
+                  builder: (context) => destination),
             );
           },
           child: Center(
