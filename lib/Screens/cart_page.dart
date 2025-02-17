@@ -441,7 +441,7 @@ class _CartPageState extends State<CartPage> {
                               try {
                                 final cartId = await CartService().getOrCreateCartId();
                                 final order = await CartService().checkout(cartId);
-                                
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -449,6 +449,7 @@ class _CartPageState extends State<CartPage> {
                                       orderId: order.id.toString(),
                                       displayId: order.displayId?.toString(),
                                       status: order.status,
+                                      location: location ?? 'Location not selected',
                                     ),
                                   ),
                                 );

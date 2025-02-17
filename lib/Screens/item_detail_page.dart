@@ -565,6 +565,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   ? Text('Item quantity edited successfully!')
                                   : Text('Successfully added to cart!'),
                               duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
                             ),
                           );
                         } catch (e) {
@@ -594,7 +596,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: _isAddingToCart || cart == null ? Color(0xFF666666) : Color(0xFF111111),
+                          image: const DecorationImage(
+                            image: AssetImage('assets/images/mesh-gradient.png'),
+                            fit: BoxFit.cover,
+                          ),
                           boxShadow: const [
                             BoxShadow(
                               offset: Offset(0, 4),

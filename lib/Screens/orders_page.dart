@@ -4,6 +4,7 @@ import 'package:vending_locker_app/constants.dart';
 import 'package:vending_locker_app/entities/order/service.dart';
 
 import '../entities/order/model.dart';
+import '../screens/homepage.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -43,8 +44,11 @@ class _OrdersPageState extends State<OrdersPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Go back when tapped.
-            Navigator.pop(context);
+            // Go back to home page when tapped.
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Homepage()),
+            );
           },
         ),
         title: Text(
