@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:vending_locker_app/Screens/qr_scanner_page.dart';
 import 'package:vending_locker_app/constants.dart';
 import 'package:vending_locker_app/entities/order/service.dart';
 
@@ -185,7 +186,7 @@ class _OrdersPageState extends State<OrdersPage> {
     final formattedRemainingTime = "${remainingTime.inHours.toString().padLeft(2, '0')}:${(remainingTime.inMinutes % 60).toString().padLeft(2, '0')}";
 
     return Container(
-      height: active ? 320 : 215,
+      height: active ? 300 : 215,
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(23, 11, 11, 11),
       decoration: BoxDecoration(
@@ -232,6 +233,10 @@ class _OrdersPageState extends State<OrdersPage> {
                       ),
                       onPressed: () {
                         // Handle scan action here.
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => QRScannerPage(orderId: order.id)),
+                        );
                       },
                     ),
                   ),
@@ -289,59 +294,66 @@ class _OrdersPageState extends State<OrdersPage> {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 25),
           // Row with order images.
           _buildImagesRow(order.items
               .map((item) => item.thumbnail ?? 'default') // TODO: placeholder when no image
               .toList()),
           SizedBox(height: 16),
           // Pickup time remaining text (only if active).
+          // add extra right padding
           if (active)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'Pickup time remaining: $formattedRemainingTime',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.4,
-                  color: Color(0xFF4C91FF),
+            Padding(
+              padding: const EdgeInsets.only(right: 9),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Pickup time remaining: $formattedRemainingTime',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF4C91FF),
+                  ),
                 ),
               ),
             ),
-          if (active) SizedBox(height: 15),
+          if (active) SizedBox(height: 10),
           // "Cancel order" button (only if active).
+          // add extra right padding
           if (active)
-            Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 145,
-                height: 39,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _orderService.cancelOrder(order.id);
-                    setState(() {
-                      _ordersFuture = _orderService.listByStatuses(['pending']);
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF4C91FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+            Padding(
+              padding: const EdgeInsets.only(right: 9),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: 145,
+                  height: 39,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await _orderService.cancelOrder(order.id);
+                      setState(() {
+                        _ordersFuture = _orderService.listByStatuses(['pending']);
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF4C91FF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Cancel order',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.4,
-                      color: Colors.white,
+                    child: Text(
+                      'Cancel order',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.4,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            )
         ],
       ),
     );
@@ -377,8 +389,8 @@ class _OrdersPageState extends State<OrdersPage> {
   // Build a single image container.
   Widget _buildImageItem(String imageUrl) {
     return Container(
-      width: 79,
-      height: 112,
+      width: 70,
+      height: 90,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(5),
@@ -393,8 +405,8 @@ class _OrdersPageState extends State<OrdersPage> {
   // Build the placeholder for extra images.
   Widget _buildPlaceholderImage(String text) {
     return Container(
-      width: 79,
-      height: 112,
+      width: 70,
+      height: 90,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(5),

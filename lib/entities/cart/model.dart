@@ -242,19 +242,19 @@ class Cart {
 
 class PaymentCollection {
   final String id;
-  final String currencyCode;
+  final String? currencyCode;
   final double amount;
-  final String status;
-  final List<PaymentProvider> paymentProviders;
+  final String? status;
+  final List<PaymentProvider>? paymentProviders;
   final List<PaymentSession>? paymentSessions;
   final List<Payment>? payments;
 
   PaymentCollection({
     required this.id,
-    required this.currencyCode,
+    this.currencyCode,
     required this.amount,
-    required this.status,
-    required this.paymentProviders,
+    this.status,
+    this.paymentProviders,
     this.paymentSessions,
     this.payments,
   });
@@ -265,9 +265,9 @@ class PaymentCollection {
       currencyCode: json['currency_code'],
       amount: (json['amount'] as num).toDouble(),
       status: json['status'],
-      paymentProviders: (json['payment_providers'] as List<dynamic>)
+      paymentProviders: json['payment_providers'] != null ? (json['payment_providers'] as List<dynamic>)
           .map((e) => PaymentProvider.fromJson(e))
-          .toList(),
+          .toList() : null,
       paymentSessions: json['payment_sessions'] != null
           ? (json['payment_sessions'] as List<dynamic>)
               .map((e) => PaymentSession.fromJson(e))

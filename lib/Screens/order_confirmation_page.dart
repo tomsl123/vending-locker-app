@@ -231,7 +231,6 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       ),
     );
   }
-}
 
   Widget _buildStepRow(IconData icon, String text) {
     return Row(
@@ -243,15 +242,15 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         ),
         const SizedBox(width: 15),
         Expanded(child:
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              fontFamily: 'Poppins',
-              color: Color(0xFF242424),
-            ),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            fontFamily: 'Poppins',
+            color: Color(0xFF242424),
           ),
+        ),
         ),
       ],
     );
@@ -316,9 +315,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     );
   }
 
-  const _commonTextStyle = TextStyle(
+  static const _commonTextStyle = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     fontFamily: 'Poppins',
     color: Color(0xFF111111),
   );
+}
