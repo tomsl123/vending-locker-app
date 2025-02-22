@@ -39,6 +39,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   http: ^1.2.2
   shared_preferences: ^2.3.5
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +83,7 @@ flutter:
     - assets/images/similar1.png
     - assets/images/pen.png
     - assets/images/mesh-gradient.png
+    - assets/images/thank-you-bg.png
     - assets/images/categories/craft.svg
     - assets/images/categories/gear.svg
     - assets/images/categories/paper.svg

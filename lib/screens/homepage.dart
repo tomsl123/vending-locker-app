@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:vending_locker_app/Screens/order_pickup_page.dart';
 import 'package:vending_locker_app/Screens/orders_page.dart';
+import 'package:vending_locker_app/Screens/thank_you_page.dart';
 import 'package:vending_locker_app/components/product_preview_card.dart';
 import 'package:vending_locker_app/entities/order/model.dart';
 import 'package:vending_locker_app/entities/order/service.dart';
@@ -308,7 +310,7 @@ class _HomepageState extends State<Homepage> {
                   color: Color(0xFF111111),
                   size: 25,
                 ),
-                onPressed: () {},
+                onPressed: () { },
               ),
             ],
           ),
