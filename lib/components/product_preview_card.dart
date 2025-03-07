@@ -33,9 +33,10 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
     super.initState();
     _loadFavoriteStatus();
   }
-  
+
   Future<void> _loadFavoriteStatus() async {
-    final savedFavorite = await asyncPrefs.getBool('favorite_${widget.product.id}');
+    final savedFavorite =
+        await asyncPrefs.getBool('favorite_${widget.product.id}');
     if (mounted && savedFavorite != null) {
       setState(() {
         _isFavorite = savedFavorite;
@@ -54,7 +55,8 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
   Widget build(BuildContext context) {
     final product = widget.product;
 
-    Map<String, int> quantitiesByLocation = product.variants.fold<Map<String, int>>({}, (map, variant) {
+    Map<String, int> quantitiesByLocation =
+        product.variants.fold<Map<String, int>>({}, (map, variant) {
       variant.getQuantitiesByLocation().forEach((locationId, quantity) {
         final locationName = Constants.locationIds[locationId] ?? locationId;
         map[locationName] = (map[locationName] ?? 0) + quantity;
@@ -84,10 +86,13 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                       padding: EdgeInsets.all(4.0),
                       child: Center(
                         child: Image.network(
-                          product.images.isNotEmpty ? product.images[0].url : '',
+                          product.images.isNotEmpty
+                              ? product.images[0].url
+                              : '',
                           fit: BoxFit.contain, // added to control image sizing
-                          errorBuilder : (context, error, stackTrace) {
-                            return Icon(Icons.broken_image, size: 48, color: Colors.grey);
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.broken_image,
+                                size: 48, color: Colors.grey);
                           },
                         ),
                       ),
@@ -105,7 +110,8 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                             shape: BoxShape.circle, // Circular shape
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.08), // Subtle shadow
+                                color: Colors.black
+                                    .withOpacity(0.08), // Subtle shadow
                                 blurRadius: 8, // Blurred shadow edges
                                 spreadRadius: 2, // Shadow distance
                               ),
@@ -113,7 +119,9 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                           ),
                           child: Center(
                             child: Icon(
-                              _isFavorite ? Icons.favorite : Icons.favorite_border,
+                              _isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               color: Color(0xFFFF404E), // Heart color
                               size: 23, // Icon size
                             ),
@@ -126,30 +134,28 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                       bottom: 8,
                       right: 8,
                       child: Container(
-                        padding: EdgeInsets.all(4), // Space inside the circle
-                        decoration: BoxDecoration(
-                          color: Colors.white, // Background color
-                          shape: BoxShape.circle, // Circular shape
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08), // Subtle shadow
-                              blurRadius: 8, // Blurred shadow edges
-                              spreadRadius: 2, // Shadow distance
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.add, // "Add" icon for the cart
-                            color: Color(0xFF4C91FF), // Icon color (blue)
-                            size: 23, // Icon size
+                          padding: EdgeInsets.all(4), // Space inside the circle
+                          decoration: BoxDecoration(
+                            color: Colors.white, // Background color
+                            shape: BoxShape.circle, // Circular shape
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.08), // Subtle shadow
+                                blurRadius: 8, // Blurred shadow edges
+                                spreadRadius: 2, // Shadow distance
+                              ),
+                            ],
                           ),
-                        )
-                      ),
+                          child: Center(
+                            child: Icon(
+                              Icons.add, // "Add" icon for the cart
+                              color: Color(0xFF4C91FF), // Icon color (blue)
+                              size: 23, // Icon size
+                            ),
+                          )),
                     ),
-                  ]
-                )
-              ),
+                  ])),
               // Product name and price
               SizedBox(height: 8),
               Text(
@@ -160,9 +166,12 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
               ),
               Text(
                 '€${product.variants.first.calculatedPrice?.calculatedAmount}',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF111111)),
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111111)),
               ),
-              if(widget.showLocation)
+              if (widget.showLocation)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -173,7 +182,9 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      quantitiesByLocation.entries.map((entry) => "${entry.key}: ${entry.value}").join(", "),
+                      quantitiesByLocation.entries
+                          .map((entry) => "${entry.key}: ${entry.value}")
+                          .join(", "),
                       style: TextStyle(
                         fontSize: 11,
                         color: Color(0xFF111111),
@@ -181,22 +192,19 @@ class ProductPreviewCardState extends State<ProductPreviewCard> {
                     ),
                   ],
                 ),
-              if(widget.showCategory)
-                SizedBox(height: 6),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(76, 145, 255, 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    product.categories.first.name,
-                    style: TextStyle(
-                      color: Color.fromRGBO(76, 145, 255, 1),
-                      fontSize: 9
-                    ),
-                  ),
+              if (widget.showCategory) SizedBox(height: 6),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(76, 145, 255, 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: Text(
+                  product.categories.first.name,
+                  style: TextStyle(
+                      color: Color.fromRGBO(76, 145, 255, 1), fontSize: 9),
+                ),
+              ),
             ],
           ),
         ),

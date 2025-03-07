@@ -9,7 +9,7 @@ class OrderService {
 
     final response = await http.get(
       Uri.parse(
-        '${Constants.medusaApiUrl}/store/orders?status[]=$statusesQuery',
+        '${Constants.medusaApiUrl}/store/orders?status[]=$statusesQuery&order=-created_at',
       ),
       headers: {
         'x-publishable-api-key': Constants.medusaApiKey,
@@ -63,4 +63,3 @@ class OrderService {
     }
   }
 }
-
